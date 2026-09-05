@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diário de Classe 2026 — Instituto Silva Nascimento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F8F4E9;
+  --paper-dark:#EFE8D6;
+  --ink:#22304A;
+  --ink-soft:#4A5773;
+  --red:#A6323F;
+  --gold:#B8933D;
+  --green:#3F7D58;
+  --line:#D8CDA9;
+  --white:#FFFFFF;
+  --shadow: 0 2px 10px rgba(34,48,74,0.08);
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3, .serif{ font-family:'Source Serif 4', serif; }
+.mono{ font-family:'IBM Plex Mono', monospace; }
+
+/* ---------- Cabeçalho estilo capa de diário ---------- */
+header.app-header{
+  background: linear-gradient(180deg, var(--ink) 0%, #1a2540 100%);
+  color: var(--paper);
+  padding: 22px 24px 18px;
+  position: sticky; top:0; z-index:50;
+  box-shadow: var(--shadow);
+}
+.header-row{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.brand{ display:flex; align-items:center; gap:12px; }
+.brand .stamp{
+  width:46px;height:46px;border-radius:50%;
+  border:2px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Source Serif 4',serif; font-weight:700; font-size:18px; color:var(--gold);
+  flex:none;
+}
+.brand h1{ font-size:19px; margin:0; letter-spacing:.2px; }
+.brand p{ margin:2px 0 0; font-size:12px; color:#B9C2D6; }
+.header-actions{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+select#turmaSelect{
+  background: var(--paper); color:var(--ink); border:none; border-radius:8px;
+  padding:9px 12px; font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600;
+  cursor:pointer;
+}
+.btn{
+  border:none; border-radius:8px; padding:9px 14px; font-size:13px; font-weight:600;
+  cursor:pointer; font-family:'Inter',sans-serif; transition:transform .1s ease, opacity .15s ease;
+  display:inline-flex; align-items:center; gap:6px;
+}
+.btn:active{ transform: scale(0.97); }
+.btn-gold{ background:var(--gold); color:#2b2205; }
+.btn-outline{ background:transparent; color:var(--paper); border:1px solid rgba(248,244,233,0.35); }
+.btn-outline:hover{ background:rgba(248,244,233,0.1); }
+.btn-red{ background:var(--red); color:#fff; }
+.btn-green{ background:var(--green); color:#fff; }
+.sync-dot{ width:9px;height:9px;border-radius:50%; background:#8a93a8; display:inline-block; margin-right:6px;}
+.sync-dot.on{ background:#5CC98A; box-shadow:0 0 0 3px rgba(92,201,138,0.25);}
+.sync-dot.err{ background:#E2665A; box-shadow:0 0 0 3px rgba(226,102,90,0.25);}
+#syncLabel{ font-size:11px; color:#B9C2D6; font-family:'IBM Plex Mono',monospace;}
+
+/* ---------- Abas (folder tabs) ---------- */
+nav.tabs{
+  display:flex; gap:2px; padding:0 24px; background:var(--paper-dark);
+  border-bottom:1px solid var(--line); overflow-x:auto;
+}
+nav.tabs button{
+  border:none; background:transparent; padding:12px 18px; font-size:13.5px; font-weight:600;
+  color:var(--ink-soft); cursor:pointer; border-bottom:3px solid transparent; white-space:nowrap;
+  font-family:'Inter',sans-serif;
+}
+nav.tabs button.active{ color:var(--ink); border-bottom-color:var(--red); background:var(--paper); }
+
+main{ max-width:1180px; margin:0 auto; padding:22px 20px 60px; }
+.card{
+  background:var(--white); border:1px solid var(--line); border-radius:12px;
+  padding:20px; margin-bottom:18px; box-shadow: var(--shadow);
+}
+.card h2{ font-size:17px; margin:0 0 4px; }
+.card .sub{ color:var(--ink-soft); font-size:12.5px; margin:0 0 14px; }
+.eyebrow{
+  display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--red); background:rgba(166,50,63,0.08);
+  padding:3px 8px; border-radius:5px; margin-bottom:8px;
+}
+
+table.grid{ width:100%; border-collapse:collapse; font-size:12.5px; }
+table.grid th, table.grid td{
+  border:1px solid var(--line); padding:7px 8px; text-align:center;
+}
+table.grid th{ background:var(--paper-dark); font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:11px; color:var(--ink-soft); }
+table.grid td.nome{ text-align:left; font-weight:500; white-space:nowrap; }
+table.grid tr:hover td{ background:#FBFAF4; }
+table.grid input[type=number], table.grid input[type=text]{
+  width:56px; border:1px solid var(--line); border-radius:5px; padding:4px; text-align:center;
+  font-family:'IBM Plex Mono',monospace; font-size:12.5px;
+}
+table.grid input[type=text].wide{ width:120px; text-align:left; }
+/* Esconde as setinhas dos campos numéricos: o valor deve ser digitado direto */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{ -webkit-appearance:none; margin:0; }
+input[type=number]{ -moz-appearance:textfield; }
+input[type=number]:focus, input[type=text]:focus{ outline:2px solid var(--gold); outline-offset:1px; }
+.numcol{ color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; }
+
+.badge{ display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700; font-family:'IBM Plex Mono',monospace;}
+.badge.aprovado{ background:rgba(63,125,88,0.12); color:var(--green); }
+.badge.recuperacao{ background:rgba(166,50,63,0.12); color:var(--red); }
+
+.toolbar{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+.toolbar label{ font-size:12.5px; color:var(--ink-soft); display:flex; align-items:center; gap:6px; }
+.toolbar input[type=date]{ border:1px solid var(--line); border-radius:6px; padding:6px 8px; font-family:'IBM Plex Mono',monospace; font-size:12.5px;}
+
+.pres-cell{ cursor:pointer; user-select:none; font-weight:700; }
+.pres-cell.P{ background:rgba(63,125,88,0.12); color:var(--green); }
+.pres-cell.F{ background:rgba(166,50,63,0.12); color:var(--red); }
+.pres-cell.vazio{ color:#c9c2a6; }
+
+.datechip{ display:inline-flex; align-items:center; gap:6px; background:var(--paper-dark); border-radius:20px; padding:5px 10px 5px 12px; font-size:12px; font-family:'IBM Plex Mono',monospace;}
+.datechip button{ border:none; background:none; color:var(--red); cursor:pointer; font-weight:700; }
+
+.extra-row{ display:flex; gap:8px; align-items:center; margin-bottom:6px; flex-wrap:wrap;}
+.extra-row input[type=text]{ flex:1; min-width:160px; border:1px solid var(--line); border-radius:6px; padding:6px 8px; font-size:13px;}
+.extra-row input[type=number]{ width:70px; border:1px solid var(--line); border-radius:6px; padding:6px 8px;}
+.small-btn{ border:none; background:var(--paper-dark); border-radius:6px; padding:5px 9px; cursor:pointer; font-weight:700; color:var(--ink-soft); font-size:13px;}
+.small-btn.del{ color:var(--red); }
+
+footer.appfoot{ text-align:center; padding:26px 20px 40px; color:var(--ink-soft); font-size:12px; font-family:'IBM Plex Mono',monospace; }
+
+.modal-bg{ position:fixed; inset:0; background:rgba(20,26,40,0.55); display:none; align-items:center; justify-content:center; z-index:100; padding:20px;}
+.modal-bg.open{ display:flex; }
+.modal{ background:var(--white); border-radius:12px; padding:24px; max-width:480px; width:100%; box-shadow:0 10px 40px rgba(0,0,0,0.25); max-height:85vh; overflow:auto;}
+.modal h3{ margin-top:0; }
+.modal textarea{ width:100%; min-height:120px; font-family:'IBM Plex Mono',monospace; font-size:12px; border:1px solid var(--line); border-radius:8px; padding:10px;}
+.modal .row{ display:flex; gap:8px; margin-top:14px; justify-content:flex-end;}
+.hint{ font-size:12px; color:var(--ink-soft); line-height:1.5;}
+.hint a{ color:var(--red); }
+
+.stat-strip{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:14px;}
+.stat{ background:var(--paper-dark); border-radius:10px; padding:10px 16px; min-width:110px;}
+.stat .n{ font-family:'Source Serif 4',serif; font-size:22px; font-weight:700; color:var(--ink);}
+.stat .l{ font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em;}
+
+@media (max-width:720px){
+  .header-row{ flex-direction:column; align-items:flex-start; }
+  table.grid{ font-size:11px; }
+  main{ padding:14px 10px 60px; }
+}
+@media print{
+  header.app-header, nav.tabs, .toolbar, .no-print{ display:none !important; }
+  body{ background:#fff; }
+  .card{ box-shadow:none; border:1px solid #999; }
+}
+</style>
+</head>
+<body>
+
+<div id="loginOverlay" style="position:fixed;inset:0;background:linear-gradient(160deg,#1a2540 0%,#22304A 100%);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--paper);border-radius:16px;padding:36px 32px;max-width:380px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.35);">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:22px;">
+      <div style="width:46px;height:46px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:'Source Serif 4',serif;font-weight:700;font-size:18px;color:var(--gold);flex:none;">ISN</div>
+      <div>
+        <h1 style="font-size:18px;margin:0;">Diário de Classe</h1>
+        <p style="margin:2px 0 0;font-size:12px;color:var(--ink-soft);">Acesso restrito</p>
+      </div>
+    </div>
+    <form id="loginForm">
+      <label style="display:block;font-size:12.5px;color:var(--ink-soft);margin-bottom:4px;">Usuário</label>
+      <input type="text" id="loginUser" autocomplete="username" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:14px;box-sizing:border-box;">
+      <label style="display:block;font-size:12.5px;color:var(--ink-soft);margin-bottom:4px;">Senha</label>
+      <input type="password" id="loginPass" autocomplete="current-password" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:6px;font-size:14px;box-sizing:border-box;">
+      <p id="loginErro" style="color:var(--red);font-size:12.5px;min-height:16px;margin:4px 0 14px;"></p>
+      <button type="submit" class="btn btn-red" style="width:100%;justify-content:center;padding:11px;">Entrar</button>
+    </form>
+  </div>
+</div>
+
+
+<div id="appRoot" style="display:none;">
+<header class="app-header">
+  <div class="header-row">
+    <div class="brand">
+      <div class="stamp">ISN</div>
+      <div>
+        <h1>Diário de Classe — 2026</h1>
+        <p>Instituto de Educação Silva Nascimento · Prof. Glaucio Rafael</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <select id="turmaSelect"></select>
+      <button class="btn btn-outline" id="btnConfigFirebase"><span class="sync-dot" id="syncDot"></span><span id="syncLabel">Local</span></button>
+      <button class="btn btn-gold" id="btnExportPdf">Gerar PDF</button>
+      <button class="btn btn-outline" id="btnSair" title="Sair">Sair</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs" id="tabsNav">
+  <button data-tab="presenca" class="active">Presença</button>
+  <button data-tab="extra">Ponto Extra</button>
+  <button data-tab="notas">Notas</button>
+  <button data-tab="mapa">Mapa de Notas</button>
+</nav>
+
+<main id="mainContent"></main>
+
+<footer class="appfoot">Diário digital · Instituto de Educação Silva Nascimento · dados salvos automaticamente</footer>
+</div>
+
+<!-- Modal configuração Firebase -->
+<div class="modal-bg" id="modalFirebase">
+  <div class="modal">
+    <h3>Sincronizar com Firebase</h3>
+    <p class="hint">Este diário já sincroniza automaticamente com o Firebase do Instituto Silva Nascimento. Só use este campo se quiser <strong>trocar para outro projeto</strong> Firebase: cole o objeto <span class="mono">firebaseConfig</span> (Console → Configurações do projeto → Seus apps → SDK).</p>
+    <textarea id="firebaseConfigInput" placeholder='{
+  "apiKey": "...",
+  "authDomain": "...",
+  "projectId": "...",
+  ...
+}'></textarea>
+    <div class="row">
+      <button class="btn btn-outline" id="btnRemoveFirebase" style="color:#A6323F;border-color:#A6323F">Remover sync</button>
+      <button class="btn btn-outline" id="btnCloseModal" style="color:#22304A;border-color:#22304A">Cancelar</button>
+      <button class="btn btn-green" id="btnSaveFirebase">Conectar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+// Dados extraídos dos Diários de Classe - 2026 (Instituto de Educação Silva Nascimento)
+// Disciplina: História / Filosofia-Ética — Prof. Glaucio Rafael
+const TURMAS_INICIAIS = {
+  "6ANO": {
+    nome: "6º Ano",
+    alunos: [
+      "ALICE ROSA PEREIRA OLIVEIRA DA SILVA",
+      "ANA CLARA DE OLIVEIRA CASTRO",
+      "ANA JÚLIA MELO DUARTE LIMA",
+      "BENJAMIN MIGUEL DE SOUZA",
+      "CARLA RAFAELLE RABELO DA SILVA",
+      "CARLOS MIGUEL DA SILVA RODRIGUES",
+      "CAUÃ DAVI DA SILVA LEITE",
+      "DAVI SOUZA GERONCIO",
+      "DAVI LUIZ FERREIRA MENDONÇA",
+      "DAVI RODRIGUES MENDES",
+      "DAVID BRYAN PEREIRA SOUZA",
+      "ELIAS JERONYMO PEREIRA",
+      "EMANUELLE SOARES MARINHO",
+      "EMILLY LIMA DA COSTA RIBEIRO",
+      "GEOVANNA CAVALCANTE DE SOUZA",
+      "ISADORA RODRIGUES BARROS",
+      "KAREN GABRIELLE SOUTO DE CARVALHO COSTA DO NASCIMENTO",
+      "MANUELLA DA SILVA CALISTO",
+      "MARIAH GEOVANNA GUIMARÃES GAMA",
+      "MIGUEL RODRIGUES BARROS",
+      "SAMUEL CARDOSO FRANCISCO",
+      "SARAH FERNANDA VIVONE DE SOUSA",
+      "SARAH TONE CARVALHO",
+      "SOPHIA LETICIA MARIANO ALVES",
+      "VALLENTINA SILVA BARBOSA",
+      "YASMIN TAVARES LEMOS"
+    ]
+  },
+  "7ANO": {
+    nome: "7º Ano",
+    alunos: [
+      "ANNA PAULA FELISBINO VIEIRA DOS SANTOS",
+      "DAVI RIBEIRO CASTILHO DE ASSIS",
+      "ELENA CONCEIÇÃO DA SILVA MOREIRA",
+      "ELIZA LETÍCIA DE CASTRO DE SOUZA",
+      "HEITOR SANTOS SECUNDINO",
+      "JOÃO PEDRO TEIXEIRA MAGALHÃES",
+      "LUIZ FELIPE DA SILVA MELO",
+      "MANUELA IZIDORO XIMENES",
+      "MARIA EDUARDA CABRAL GARCIA",
+      "MARIA EDUARDA GOMES DA SILVA",
+      "RAFAELA SOARES DO NASCIMENTO",
+      "RYAN CARLOS DE OLIVEIRA JARDIM",
+      "SOFIA BEATRIZ SERPA MARTINS"
+    ]
+  },
+  "8ANO": {
+    nome: "8º Ano",
+    alunos: [
+      "EMANUELLY VITÓRIA GOMES DE OLIVEIRA",
+      "FELIPE DA SILVA GONÇALVES",
+      "KEMILY SILVA FERREIRA LOPES",
+      "KETHELEN CAROLINE LISBOA",
+      "MIGUEL ANTHONNY S. ALBUQUERQUE",
+      "RICHARD GUIMARÃES SANTOS",
+      "RIQUELME ALMEIDA DE OLIVEIRA",
+      "ROBSON MANOEL DORIS DA ROCHA",
+      "SOFIA VITORIA FERREIRA MENDONÇA"
+    ]
+  },
+  "9ANO": {
+    nome: "9º Ano",
+    alunos: [
+      "ANA CLARA NASCIMENTO SANTOS",
+      "ARTHUR DOS PRAZERES DIAS",
+      "DAVI FREITAS LEAL",
+      "GEOVANA CARVALHO RIBEIRO",
+      "GEOVANNA AQUINO FIRMINO",
+      "MATHEUS MONTEIRO DE SOUZA",
+      "MIGUEL DORIS DA ROCHA",
+      "NICKOLAS GABRIEL NUNES OLIVEIRA RIGUETI",
+      "PEDRO HENRIQUE MOREIRA REIS",
+      "SOPHIA TONE CARVALHO"
+    ]
+  }
+};
+
+
+/* ===================== ESTADO E MODELO DE DADOS =====================
+Estrutura por turma:
+{
+  nome: "6º Ano",
+  disciplina: "História",
+  alunos: [
+    {
+      num: 1,
+      nome: "ALICE ...",
+      observacoes: "",
+      presencas: { "2026-08-10": "P" | "F" },
+      pontosExtra: { b1: [{desc, valor, tipo:"add"|"sub"}], b2: [...], b3: [...], b4: [...] },
+      notas: {
+        b1: { teste: 0, trabalho: 0, prova: 0 },
+        b2: { teste: 0, trabalho: 0, prova: 0 },
+        b3: { teste: 0, trabalho: 0, prova: 0 },
+        b4: { teste: 0, trabalho: 0, prova: 0 }
+      },
+      recuperacao: { b2: null, b4: null }
+    }, ...
+  ]
+}
+======================================================================= */
+
+const PESOS = { teste: 3, trabalho: 1, prova: 6 }; // soma 10
+
+function clamp10(v) {
+  v = Number(v) || 0;
+  if (v < 0) return 0;
+  if (v > 10) return 10;
+  return Math.round(v * 100) / 100;
+}
+
+function somaPontosExtra(aluno, bim) {
+  const lista = (aluno.pontosExtra && aluno.pontosExtra[bim]) || [];
+  return lista.reduce((acc, p) => {
+    const sinal = p.tipo === "sub" ? -1 : 1;
+    return acc + sinal * Math.abs(Number(p.valor) || 0);
+  }, 0);
+}
+
+// Média ponderada (teste 3 + trabalho 1 + prova 6) / 10, + pontos extra, limitada a 10
+function mediaBimestreBruta(aluno, bim) {
+  const n = (aluno.notas && aluno.notas[bim]) || { teste: 0, trabalho: 0, prova: 0 };
+  const base =
+    (Number(n.teste) || 0) * PESOS.teste +
+    (Number(n.trabalho) || 0) * PESOS.trabalho +
+    (Number(n.prova) || 0) * PESOS.prova;
+  const media = base / 10;
+  const extra = somaPontosExtra(aluno, bim);
+  return clamp10(media + extra);
+}
+
+// Média final do bimestre já considerando recuperação (b2 e b4), quando informada
+function mediaBimestreFinal(aluno, bim) {
+  const bruta = mediaBimestreBruta(aluno, bim);
+  if ((bim === "b2" || bim === "b4") && aluno.recuperacao && aluno.recuperacao[bim] !== null && aluno.recuperacao[bim] !== undefined && aluno.recuperacao[bim] !== "") {
+    return clamp10(aluno.recuperacao[bim]);
+  }
+  return bruta;
+}
+
+function mediaFinalAno(aluno) {
+  const b1 = mediaBimestreFinal(aluno, "b1");
+  const b2 = mediaBimestreFinal(aluno, "b2");
+  const b3 = mediaBimestreFinal(aluno, "b3");
+  const b4 = mediaBimestreFinal(aluno, "b4");
+  return clamp10((b1 + b2 + b3 + b4) / 4);
+}
+
+function statusAluno(aluno) {
+  return mediaFinalAno(aluno) >= 7 ? "Aprovado" : "Em recuperação";
+}
+
+function alunoEmptyExtra() {
+  return { teste: 0, trabalho: 0, prova: 0 };
+}
+
+function novoAluno(num, nome) {
+  return {
+    num,
+    nome,
+    observacoes: "",
+    presencas: {},
+    pontosExtra: { b1: [], b2: [], b3: [], b4: [] },
+    notas: { b1: alunoEmptyExtra(), b2: alunoEmptyExtra(), b3: alunoEmptyExtra(), b4: alunoEmptyExtra() },
+    recuperacao: { b2: null, b4: null }
+  };
+}
+
+// Reordena os alunos da turma em ordem alfabética e renumera (1, 2, 3...)
+function reordenarERenumerar(turma) {
+  turma.alunos.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" }));
+  turma.alunos.forEach((a, i) => { a.num = i + 1; });
+}
+
+function adicionarAlunoTurma(turma, nome) {
+  const nomeLimpo = String(nome || "").trim().toUpperCase();
+  if (!nomeLimpo) return null;
+  const novo = novoAluno(turma.alunos.length + 1, nomeLimpo);
+  turma.alunos.push(novo);
+  reordenarERenumerar(turma);
+  return novo;
+}
+
+function removerAlunoTurma(turma, num) {
+  const idx = turma.alunos.findIndex((a) => a.num === num);
+  if (idx === -1) return false;
+  turma.alunos.splice(idx, 1);
+  reordenarERenumerar(turma);
+  return true;
+}
+
+function construirEstadoInicial(turmasBase) {
+  const turmas = {};
+  Object.entries(turmasBase).forEach(([id, t]) => {
+    turmas[id] = {
+      nome: t.nome,
+      disciplina: "História / Filosofia-Ética",
+      alunos: t.alunos.map((nome, i) => novoAluno(i + 1, nome))
+    };
+  });
+  return { turmas, firebaseConfig: null };
+}
+
+
+
+/* ======================= AUTENTICAÇÃO (FIREBASE AUTH) =======================
+Login real via Firebase Authentication (validado no servidor do Firebase, não
+no navegador). O usuário digita "kronus" na tela, mas por trás mapeamos para
+o e-mail cadastrado no Firebase Auth, que exige esse formato. O token obtido
+aqui também é usado para autorizar as chamadas ao Firestore (auth != null nas
+regras), então sem login válido não é possível ler nem gravar os dados. */
+const AUTH_API_KEY = "AIzaSyDm7rPjehG8Js13y1WOrWDL05bt0ObDN30";
+const LOGIN_USER_MAP = { kronus: "rafael.glaucio2@gmail.com" };
+const AUTH_SESSION_KEY = "isn_diario_2026_auth";
+
+let AUTH_TOKENS = null; // { idToken, refreshToken, expiraEm (timestamp ms) }
+
+function salvarAuthSession() {
+  if (AUTH_TOKENS) sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(AUTH_TOKENS));
+  else sessionStorage.removeItem(AUTH_SESSION_KEY);
+}
+
+function carregarAuthSession() {
+  try {
+    const raw = sessionStorage.getItem(AUTH_SESSION_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return null;
+}
+
+function mostrarApp() {
+  document.getElementById("loginOverlay").style.display = "none";
+  document.getElementById("appRoot").style.display = "";
+  iniciarApp();
+}
+
+function mostrarLoginComErro(msg) {
+  document.getElementById("loginOverlay").style.display = "flex";
+  document.getElementById("appRoot").style.display = "none";
+  const erroEl = document.getElementById("loginErro");
+  if (erroEl) erroEl.textContent = msg || "";
+}
+
+async function firebaseSignIn(email, senha) {
+  const url = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + encodeURIComponent(AUTH_API_KEY);
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password: senha, returnSecureToken: true })
+  });
+  const data = await res.json();
+  if (!res.ok) throw data;
+  return {
+    idToken: data.idToken,
+    refreshToken: data.refreshToken,
+    expiraEm: Date.now() + (Number(data.expiresIn) || 3600) * 1000 - 60000 // renova 1 min antes de expirar
+  };
+}
+
+async function firebaseRefreshToken(refreshToken) {
+  const url = "https://securetoken.googleapis.com/v1/token?key=" + encodeURIComponent(AUTH_API_KEY);
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: "grant_type=refresh_token&refresh_token=" + encodeURIComponent(refreshToken)
+  });
+  const data = await res.json();
+  if (!res.ok) throw data;
+  return {
+    idToken: data.id_token,
+    refreshToken: data.refresh_token,
+    expiraEm: Date.now() + (Number(data.expires_in) || 3600) * 1000 - 60000
+  };
+}
+
+// Garante um idToken válido para usar nas chamadas ao Firestore, renovando se necessário
+async function obterIdTokenValido() {
+  if (!AUTH_TOKENS) return null;
+  if (Date.now() < AUTH_TOKENS.expiraEm) return AUTH_TOKENS.idToken;
+  try {
+    AUTH_TOKENS = await firebaseRefreshToken(AUTH_TOKENS.refreshToken);
+    salvarAuthSession();
+    return AUTH_TOKENS.idToken;
+  } catch (e) {
+    console.error("Falha ao renovar sessão:", e);
+    AUTH_TOKENS = null;
+    salvarAuthSession();
+    return null;
+  }
+}
+
+function mensagemErroAuth(err) {
+  const codigo = (err && err.error && err.error.message) || "";
+  if (codigo.includes("INVALID_LOGIN_CREDENTIALS") || codigo.includes("EMAIL_NOT_FOUND") || codigo.includes("INVALID_PASSWORD")) {
+    return "Usuário ou senha incorretos.";
+  }
+  if (codigo.includes("USER_DISABLED")) return "Este usuário foi desativado.";
+  if (codigo.includes("TOO_MANY_ATTEMPTS")) return "Muitas tentativas seguidas. Aguarde alguns minutos e tente de novo.";
+  if (err instanceof TypeError || /failed to fetch/i.test(String(err && err.message))) {
+    return "Não foi possível conectar ao servidor de login — confira sua internet.";
+  }
+  return "Não foi possível entrar. Detalhe técnico: " + (codigo || (err && err.message) || String(err));
+}
+
+function iniciarLogin() {
+  const sessao = carregarAuthSession();
+  if (sessao && sessao.idToken) {
+    AUTH_TOKENS = sessao;
+    mostrarApp();
+    return;
+  }
+  document.getElementById("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const userDigitado = document.getElementById("loginUser").value.trim().toLowerCase();
+    const pass = document.getElementById("loginPass").value;
+    const erroEl = document.getElementById("loginErro");
+    const btnEntrar = e.target.querySelector("button[type=submit]");
+    erroEl.textContent = "";
+    if (!userDigitado || !pass) { erroEl.textContent = "Preencha usuário e senha."; return; }
+    const email = LOGIN_USER_MAP[userDigitado];
+    if (!email) { erroEl.textContent = "Usuário ou senha incorretos."; return; }
+    btnEntrar.disabled = true;
+    btnEntrar.textContent = "Entrando...";
+    try {
+      AUTH_TOKENS = await firebaseSignIn(email, pass);
+      salvarAuthSession();
+      mostrarApp();
+    } catch (err) {
+      console.error(err);
+      erroEl.textContent = mensagemErroAuth(err);
+    } finally {
+      btnEntrar.disabled = false;
+      btnEntrar.textContent = "Entrar";
+    }
+  });
+}
+
+function sair() {
+  AUTH_TOKENS = null;
+  salvarAuthSession();
+  location.reload();
+}
+
+/* ======================= ESTADO GLOBAL ======================= */
+const STORAGE_KEY = "isn_diario_2026_v1";
+const FB_CONFIG_KEY = "isn_diario_2026_fbconfig";
+const FIRESTORE_COLLECTION = "diario_silva_nascimento";
+const FIRESTORE_DOC = "estado_2026";
+
+// Config padrão do projeto Firebase do Instituto Silva Nascimento — já embutida,
+// então o app conecta sozinho ao abrir. Pode ser trocada pelo botão de sincronização.
+// Sincroniza via API REST do Firestore (fetch simples), sem depender do SDK com
+// conexão contínua — mais compatível com redes/proxies restritivos.
+const DEFAULT_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDm7rPjehG8Js13y1WOrWDL05bt0ObDN30",
+  authDomain: "fundamental-dfe46.firebaseapp.com",
+  projectId: "fundamental-dfe46",
+  storageBucket: "fundamental-dfe46.firebasestorage.app",
+  messagingSenderId: "727080402907",
+  appId: "1:727080402907:web:a28581d1bbc1c268b6b1fe",
+  measurementId: "G-TZPKZ9ZYC3"
+};
+
+let STATE = null;
+let TURMA_ATUAL = null;
+let ABA_ATUAL = "presenca";
+let FB_CFG_ATIVA = null; // { apiKey, projectId }
+let saveTimeout = null;
+
+/* ======================= PERSISTÊNCIA LOCAL ======================= */
+function carregarEstadoLocal() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) { console.warn("Falha ao ler localStorage", e); }
+  return null;
+}
+
+function salvarLocal() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE)); }
+  catch (e) { console.warn("Falha ao salvar localStorage", e); }
+}
+
+function setSyncStatus(mode) {
+  const dot = document.getElementById("syncDot");
+  const label = document.getElementById("syncLabel");
+  dot.className = "sync-dot" + (mode === "on" ? " on" : mode === "err" ? " err" : "");
+  label.textContent = mode === "on" ? "Sincronizado" : mode === "err" ? "Erro de sync" : mode === "saving" ? "Salvando..." : "Local";
+}
+
+/* ======================= FIRESTORE VIA REST (fetch) ======================= */
+function firestoreDocUrl(cfg) {
+  return "https://firestore.googleapis.com/v1/projects/" + encodeURIComponent(cfg.projectId) +
+    "/databases/(default)/documents/" + FIRESTORE_COLLECTION + "/" + FIRESTORE_DOC +
+    "?key=" + encodeURIComponent(cfg.apiKey);
+}
+
+async function firestoreGet(cfg) {
+  const idToken = await obterIdTokenValido();
+  const headers = idToken ? { Authorization: "Bearer " + idToken } : {};
+  const res = await fetch(firestoreDocUrl(cfg), { method: "GET", headers });
+  if (res.status === 404) return null; // documento ainda não existe — primeira vez
+  if (!res.ok) { const body = await res.json().catch(() => ({})); throw { httpStatus: res.status, body }; }
+  const doc = await res.json();
+  if (!doc || !doc.fields || !doc.fields.payload || !doc.fields.payload.stringValue) return null;
+  return JSON.parse(doc.fields.payload.stringValue);
+}
+
+async function firestoreSet(cfg, stateObj) {
+  const idToken = await obterIdTokenValido();
+  const url = firestoreDocUrl(cfg) + "&updateMask.fieldPaths=payload&updateMask.fieldPaths=atualizadoEm";
+  const body = {
+    fields: {
+      payload: { stringValue: JSON.stringify(stateObj) },
+      atualizadoEm: { stringValue: new Date().toISOString() }
+    }
+  };
+  const headers = { "Content-Type": "application/json" };
+  if (idToken) headers.Authorization = "Bearer " + idToken;
+  const res = await fetch(url, { method: "PATCH", headers, body: JSON.stringify(body) });
+  if (!res.ok) { const respBody = await res.json().catch(() => ({})); throw { httpStatus: res.status, body: respBody }; }
+  return res.json();
+}
+
+function initFirebaseFromStorage() {
+  const raw = localStorage.getItem(FB_CONFIG_KEY);
+  if (raw) {
+    try {
+      const cfg = JSON.parse(raw);
+      conectarFirebase(cfg, true);
+      return;
+    } catch (e) { console.warn("Config firebase inválida salva", e); }
+  }
+  conectarFirebase(DEFAULT_FIREBASE_CONFIG, true);
+}
+
+function conectarFirebase(cfg, silencioso) {
+  if (!cfg || !cfg.apiKey || !cfg.projectId) {
+    setSyncStatus("err");
+    if (!silencioso) alert("Configuração do Firebase inválida: faltam apiKey e/ou projectId.");
+    return;
+  }
+  FB_CFG_ATIVA = { apiKey: cfg.apiKey, projectId: cfg.projectId };
+  localStorage.setItem(FB_CONFIG_KEY, JSON.stringify(cfg));
+  setSyncStatus("saving");
+  firestoreGet(FB_CFG_ATIVA).then((remoto) => {
+    if (remoto) {
+      STATE = remoto;
+      salvarLocal();
+      renderTurmaSelect();
+      renderAll();
+    }
+    setSyncStatus("on");
+  }).catch((err) => {
+    console.error(err);
+    setSyncStatus("err");
+    if (!silencioso) mostrarErroFirebase(err);
+  });
+}
+
+function mostrarErroFirebase(err) {
+  const httpStatus = err && err.httpStatus;
+  const msgApi = err && err.body && err.body.error && err.body.error.message;
+  const msg = msgApi || (err && err.message) || String(err);
+  let explicacao = "";
+  if (httpStatus === 403 || /permission/i.test(msg)) {
+    explicacao = "Acesso negado pelas regras do Firestore. Como as regras agora exigem login (request.auth != null), confira se: 1) você está logado (tente sair e entrar de novo); 2) o Authentication com Email/Senha está ativado no Console do Firebase; 3) o usuário kronus foi criado em Authentication → Users.";
+  } else if (httpStatus === 404 || /not.?found|does not exist/i.test(msg)) {
+    explicacao = "O banco Firestore ainda não foi criado neste projeto (ou o banco não se chama '(default)'). No Console do Firebase, vá em Compilação → Firestore Database → Criar banco de dados e tente novamente.";
+  } else if (/api key/i.test(msg)) {
+    explicacao = "A apiKey parece inválida. Copie novamente o firebaseConfig em Configurações do projeto → Seus apps → SDK do Firebase.";
+  } else if (err instanceof TypeError || /failed to fetch|networkerror/i.test(msg)) {
+    explicacao = "Não foi possível nem abrir a conexão HTTPS com o Firestore — provavelmente firewall/proxy/antivírus da rede atual está bloqueando *.googleapis.com. Teste em outra rede (ex.: dados móveis do celular) para confirmar.";
+  } else {
+    explicacao = "Detalhe técnico: " + msg;
+  }
+  alert("Não foi possível conectar ao Firebase.\n\n" + explicacao);
+}
+
+function agendarSalvamento() {
+  salvarLocal();
+  if (!FB_CFG_ATIVA) return;
+  setSyncStatus("saving");
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => {
+    firestoreSet(FB_CFG_ATIVA, STATE)
+      .then(() => setSyncStatus("on"))
+      .catch((err) => {
+        console.error(err);
+        setSyncStatus("err");
+        if (!window.__ultimoErroMostrado || Date.now() - window.__ultimoErroMostrado > 8000) {
+          window.__ultimoErroMostrado = Date.now();
+          mostrarErroFirebase(err);
+        }
+      });
+  }, 700);
+}
+
+/* ======================= INICIALIZAÇÃO ======================= */
+function iniciarApp() {
+  STATE = carregarEstadoLocal() || construirEstadoInicial(TURMAS_INICIAIS);
+  // garante que turmas novas do código apareçam mesmo se já havia estado salvo antigo
+  Object.entries(TURMAS_INICIAIS).forEach(([id, t]) => {
+    if (!STATE.turmas[id]) {
+      STATE.turmas[id] = { nome: t.nome, disciplina: "História / Filosofia-Ética", alunos: t.alunos.map((nome, i) => novoAluno(i + 1, nome)) };
+    }
+  });
+  TURMA_ATUAL = Object.keys(STATE.turmas)[0];
+  renderTurmaSelect();
+  renderAll();
+  ligarEventosGlobais();
+  try { initFirebaseFromStorage(); }
+  catch (e) { console.error("Falha ao iniciar sincronização Firebase (app continua funcionando localmente):", e); setSyncStatus("err"); }
+}
+
+function renderTurmaSelect() {
+  const sel = document.getElementById("turmaSelect");
+  sel.innerHTML = "";
+  Object.entries(STATE.turmas).forEach(([id, t]) => {
+    const opt = document.createElement("option");
+    opt.value = id; opt.textContent = t.nome + " (" + t.alunos.length + " alunos)";
+    sel.appendChild(opt);
+  });
+  sel.value = TURMA_ATUAL;
+}
+
+function turmaAtual() { return STATE.turmas[TURMA_ATUAL]; }
+
+/* ======================= EVENTOS GLOBAIS ======================= */
+function ligarEventosGlobais() {
+  document.getElementById("turmaSelect").addEventListener("change", (e) => {
+    TURMA_ATUAL = e.target.value;
+    renderAll();
+  });
+
+  document.querySelectorAll("#tabsNav button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      ABA_ATUAL = btn.dataset.tab;
+      document.querySelectorAll("#tabsNav button").forEach((b) => b.classList.toggle("active", b === btn));
+      renderAll();
+    });
+  });
+
+  document.getElementById("btnConfigFirebase").addEventListener("click", () => {
+    const raw = localStorage.getItem(FB_CONFIG_KEY);
+    const cfgAtual = raw ? JSON.parse(raw) : DEFAULT_FIREBASE_CONFIG;
+    document.getElementById("firebaseConfigInput").value = JSON.stringify(cfgAtual, null, 2);
+    document.getElementById("modalFirebase").classList.add("open");
+  });
+  document.getElementById("btnCloseModal").addEventListener("click", () => {
+    document.getElementById("modalFirebase").classList.remove("open");
+  });
+  document.getElementById("btnSaveFirebase").addEventListener("click", () => {
+    const txt = document.getElementById("firebaseConfigInput").value.trim();
+    if (!txt) { alert("Cole o firebaseConfig do seu projeto."); return; }
+    try {
+      const cfg = JSON.parse(txt);
+      conectarFirebase(cfg, false);
+      document.getElementById("modalFirebase").classList.remove("open");
+    } catch (e) { alert("JSON inválido. Confira o formato do firebaseConfig."); }
+  });
+  document.getElementById("btnRemoveFirebase").addEventListener("click", () => {
+    localStorage.removeItem(FB_CONFIG_KEY);
+    FB_CFG_ATIVA = null;
+    document.getElementById("modalFirebase").classList.remove("open");
+    conectarFirebase(DEFAULT_FIREBASE_CONFIG, true);
+  });
+
+  document.getElementById("btnExportPdf").addEventListener("click", exportarPdfMapaDeNotas);
+  document.getElementById("btnSair").addEventListener("click", () => {
+    if (confirm("Sair do diário? Você vai precisar digitar usuário e senha de novo.")) sair();
+  });
+}
+
+function renderAll() {
+  if (ABA_ATUAL === "presenca") renderPresenca();
+  else if (ABA_ATUAL === "extra") renderPontoExtra();
+  else if (ABA_ATUAL === "notas") renderNotas();
+  else if (ABA_ATUAL === "mapa") renderMapaDeNotas();
+}
+
+/* ======================= ABA: PRESENÇA ======================= */
+function todasDatasDaTurma(t) {
+  const set = new Set();
+  t.alunos.forEach((a) => Object.keys(a.presencas || {}).forEach((d) => set.add(d)));
+  return Array.from(set).sort();
+}
+
+function renderPresenca() {
+  const t = turmaAtual();
+  const datas = todasDatasDaTurma(t);
+  const main = document.getElementById("mainContent");
+
+  let html = `<div class="card">
+    <span class="eyebrow">Gestão da turma</span>
+    <h2>${t.nome} — Alunos matriculados</h2>
+    <p class="sub">Adicione ou remova alunos. A lista é reordenada em ordem alfabética e renumerada automaticamente.</p>
+    <div class="toolbar no-print">
+      <label style="flex:1;min-width:220px;">Nome do(a) novo(a) aluno(a):
+        <input type="text" id="novoAlunoInput" class="wide" style="width:100%;max-width:360px;margin-left:6px;" placeholder="Ex.: JOÃO DA SILVA">
+      </label>
+      <button class="btn btn-green" id="btnAddAluno">+ Adicionar aluno(a)</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="eyebrow">Registro de presença</span>
+    <h2>${t.nome} — Lista de chamada</h2>
+    <p class="sub">Clique em uma célula para alternar entre Presente (P) e Falta (F). Adicione uma nova data abaixo.</p>
+    <div class="toolbar no-print">
+      <label>Nova data: <input type="date" id="novaDataInput"></label>
+      <button class="btn btn-red" id="btnAddData">+ Adicionar data</button>
+    </div>
+    <div style="overflow-x:auto;">
+    <table class="grid">
+      <thead><tr><th>Nº</th><th style="text-align:left">Aluno(a)</th><th class="no-print">Ações</th>`;
+  datas.forEach((d) => {
+    html += `<th><span class="datechip">${formatarDataCurta(d)}<button data-del-data="${d}" class="no-print" title="Remover data">×</button></span></th>`;
+  });
+  html += `</tr></thead><tbody>`;
+
+  t.alunos.forEach((a) => {
+    const temObs = a.observacoes && a.observacoes.trim().length > 0;
+    html += `<tr><td class="numcol">${a.num}</td><td class="nome">${a.nome}</td>`;
+    html += `<td class="no-print" style="white-space:nowrap;">
+      <button class="small-btn" data-obs-aluno="${a.num}" title="Observações">${temObs ? "📝•" : "📝"}</button>
+      <button class="small-btn del" data-remove-aluno="${a.num}" title="Remover aluno(a)">✕</button>
+    </td>`;
+    datas.forEach((d) => {
+      const v = a.presencas[d] === "F" ? "F" : "P";
+      html += `<td class="pres-cell ${v}" data-aluno="${a.num}" data-data="${d}">${v}</td>`;
+    });
+    html += `</tr>`;
+  });
+  html += `</tbody></table></div>`;
+
+  if (datas.length) {
+    html += `<div class="stat-strip" style="margin-top:16px;">`;
+    t.alunos.forEach((a) => {
+      const faltas = datas.reduce((acc, d) => acc + (a.presencas[d] === "F" ? 1 : 0), 0);
+      if (faltas > 0) html += `<div class="stat"><div class="n">${faltas}</div><div class="l">Faltas — ${a.nome.split(" ")[0]}</div></div>`;
+    });
+    html += `</div>`;
+  }
+  html += `</div>`;
+  main.innerHTML = html;
+
+  document.getElementById("btnAddAluno").addEventListener("click", () => {
+    const input = document.getElementById("novoAlunoInput");
+    if (!input.value.trim()) { alert("Digite o nome do(a) aluno(a)."); return; }
+    adicionarAlunoTurma(t, input.value);
+    agendarSalvamento();
+    renderPresenca();
+  });
+  const novoAlunoInput = document.getElementById("novoAlunoInput");
+  if (novoAlunoInput) {
+    novoAlunoInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") document.getElementById("btnAddAluno").click();
+    });
+  }
+
+  main.querySelectorAll("[data-remove-aluno]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const num = Number(btn.dataset.removeAluno);
+      const aluno = t.alunos.find((a) => a.num === num);
+      if (!aluno) return;
+      if (!confirm("Remover " + aluno.nome + " da turma? Todas as notas, presenças e observações desse(a) aluno(a) serão apagadas.")) return;
+      removerAlunoTurma(t, num);
+      agendarSalvamento();
+      renderTurmaSelect();
+      renderPresenca();
+    });
+  });
+
+  main.querySelectorAll("[data-obs-aluno]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const num = Number(btn.dataset.obsAluno);
+      abrirModalObservacoes(t, num);
+    });
+  });
+
+  document.getElementById("btnAddData").addEventListener("click", () => {
+    const input = document.getElementById("novaDataInput");
+    if (!input.value) { alert("Escolha uma data."); return; }
+    t.alunos.forEach((a) => { if (!(input.value in a.presencas)) a.presencas[input.value] = "P"; });
+    agendarSalvamento();
+    renderPresenca();
+  });
+
+  main.querySelectorAll("[data-del-data]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const d = btn.dataset.delData;
+      if (!confirm("Remover a coluna do dia " + formatarDataCurta(d) + " para toda a turma?")) return;
+      t.alunos.forEach((a) => delete a.presencas[d]);
+      agendarSalvamento();
+      renderPresenca();
+    });
+  });
+
+  main.querySelectorAll(".pres-cell").forEach((cell) => {
+    cell.addEventListener("click", () => {
+      const num = Number(cell.dataset.aluno);
+      const data = cell.dataset.data;
+      const aluno = t.alunos.find((a) => a.num === num);
+      const atual = aluno.presencas[data] || "P";
+      const prox = atual === "P" ? "F" : "P";
+      aluno.presencas[data] = prox;
+      agendarSalvamento();
+      renderPresenca();
+    });
+  });
+}
+
+/* ======================= MODAL: OBSERVAÇÕES ======================= */
+function abrirModalObservacoes(t, num) {
+  const aluno = t.alunos.find((a) => a.num === num);
+  if (!aluno) return;
+  let overlay = document.getElementById("modalObsOverlay");
+  if (overlay) overlay.remove();
+  overlay = document.createElement("div");
+  overlay.className = "modal-bg open";
+  overlay.id = "modalObsOverlay";
+  overlay.innerHTML = `
+    <div class="modal">
+      <h3>Observações — ${aluno.num}. ${aluno.nome}</h3>
+      <p class="hint">Anotações livres sobre o(a) aluno(a): comportamento, necessidades específicas, combinados com a família etc. Fica salvo junto com o restante dos dados da turma.</p>
+      <textarea id="obsTextarea" style="min-height:160px;">${escapeHtml(aluno.observacoes || "")}</textarea>
+      <div class="row">
+        <button class="btn btn-outline" id="btnCloseObs" style="color:#22304A;border-color:#22304A">Cancelar</button>
+        <button class="btn btn-green" id="btnSaveObs">Salvar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById("btnCloseObs").addEventListener("click", () => overlay.remove());
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
+  document.getElementById("btnSaveObs").addEventListener("click", () => {
+    aluno.observacoes = document.getElementById("obsTextarea").value;
+    agendarSalvamento();
+    overlay.remove();
+    renderAll();
+  });
+}
+
+function formatarDataCurta(iso) {
+  const [y, m, d] = iso.split("-");
+  return d + "/" + m;
+}
+
+/* ======================= ABA: PONTO EXTRA ======================= */
+function renderPontoExtra() {
+  const t = turmaAtual();
+  const main = document.getElementById("mainContent");
+  let html = `<div class="card">
+    <span class="eyebrow">Atividades complementares</span>
+    <h2>${t.nome} — Ponto extra por bimestre</h2>
+    <p class="sub">Some ou retire pontos por bimestre (participação, projetos, tarefas bônus, penalidades). Escolha "+" para somar e "−" para descontar da média.</p>`;
+
+  t.alunos.forEach((a) => {
+    html += `<div style="border-top:1px solid var(--line); padding-top:12px; margin-top:12px;">
+      <strong>${a.num}. ${a.nome}</strong>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; margin-top:10px;">`;
+    ["b1", "b2", "b3", "b4"].forEach((bim) => {
+      const total = somaPontosExtra(a, bim);
+      const totalTxt = (total >= 0 ? "+" : "") + total.toFixed(2);
+      html += `<div>
+        <div class="sub" style="margin-bottom:6px;">${rotuloBimestre(bim)} <span class="mono" style="color:${total < 0 ? "var(--red)" : "var(--green)"};font-weight:600;">(total: ${totalTxt})</span></div>
+        <div data-extra-list="${a.num}|${bim}">`;
+      (a.pontosExtra[bim] || []).forEach((p, idx) => {
+        const tipo = p.tipo === "sub" ? "sub" : "add";
+        html += `<div class="extra-row">
+          <select data-extra-tipo="${a.num}|${bim}|${idx}" style="border:1px solid var(--line);border-radius:6px;padding:6px 4px;font-weight:700;color:${tipo === "sub" ? "var(--red)" : "var(--green)"};">
+            <option value="add" ${tipo === "add" ? "selected" : ""}>+</option>
+            <option value="sub" ${tipo === "sub" ? "selected" : ""}>−</option>
+          </select>
+          <input type="text" placeholder="Descrição" value="${escapeHtml(p.desc)}" data-extra-desc="${a.num}|${bim}|${idx}">
+          <input type="number" step="0.1" min="0" inputmode="decimal" value="${Math.abs(Number(p.valor) || 0)}" data-extra-valor="${a.num}|${bim}|${idx}" onfocus="this.select()">
+          <button class="small-btn del" data-extra-del="${a.num}|${bim}|${idx}">Remover</button>
+        </div>`;
+      });
+      html += `</div>
+        <button class="small-btn" data-extra-add="${a.num}|${bim}">+ Novo lançamento</button>
+      </div>`;
+    });
+    html += `</div></div>`;
+  });
+  html += `</div>`;
+  main.innerHTML = html;
+
+  main.querySelectorAll("[data-extra-add]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const [num, bim] = btn.dataset.extraAdd.split("|");
+      const a = t.alunos.find((x) => x.num === Number(num));
+      a.pontosExtra[bim].push({ desc: "", valor: 0, tipo: "add" });
+      agendarSalvamento();
+      renderPontoExtra();
+    });
+  });
+  main.querySelectorAll("[data-extra-del]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const [num, bim, idx] = btn.dataset.extraDel.split("|");
+      const a = t.alunos.find((x) => x.num === Number(num));
+      a.pontosExtra[bim].splice(Number(idx), 1);
+      agendarSalvamento();
+      renderPontoExtra();
+    });
+  });
+  main.querySelectorAll("[data-extra-desc]").forEach((inp) => {
+    inp.addEventListener("input", () => {
+      const [num, bim, idx] = inp.dataset.extraDesc.split("|");
+      const a = t.alunos.find((x) => x.num === Number(num));
+      a.pontosExtra[bim][Number(idx)].desc = inp.value;
+      agendarSalvamento();
+    });
+  });
+  main.querySelectorAll("[data-extra-valor]").forEach((inp) => {
+    inp.addEventListener("input", () => {
+      const [num, bim, idx] = inp.dataset.extraValor.split("|");
+      const a = t.alunos.find((x) => x.num === Number(num));
+      a.pontosExtra[bim][Number(idx)].valor = Math.abs(Number(inp.value) || 0);
+      agendarSalvamento();
+      renderPontoExtra();
+    });
+  });
+  main.querySelectorAll("[data-extra-tipo]").forEach((sel) => {
+    sel.addEventListener("change", () => {
+      const [num, bim, idx] = sel.dataset.extraTipo.split("|");
+      const a = t.alunos.find((x) => x.num === Number(num));
+      a.pontosExtra[bim][Number(idx)].tipo = sel.value;
+      agendarSalvamento();
+      renderPontoExtra();
+    });
+  });
+}
+
+function rotuloBimestre(bim) {
+  return { b1: "1º Bimestre", b2: "2º Bimestre", b3: "3º Bimestre", b4: "4º Bimestre" }[bim];
+}
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+/* ======================= ABA: NOTAS ======================= */
+function renderNotas() {
+  const t = turmaAtual();
+  const main = document.getElementById("mainContent");
+  let html = `<div class="card">
+    <span class="eyebrow">Lançamento de notas</span>
+    <h2>${t.nome} — Notas por bimestre</h2>
+    <p class="sub">Teste, trabalho e prova compõem a média do bimestre (pesos 3 / 1 / 6). Digite o valor direto no campo — os totais atualizam automaticamente. A nota de recuperação, quando preenchida, substitui a média do 2º e do 4º bimestre.</p>
+    <div style="overflow-x:auto;">
+    <table class="grid">
+      <thead><tr>
+        <th rowspan="2">Nº</th><th rowspan="2" style="text-align:left">Aluno(a)</th>
+        ${["1º Bim", "2º Bim", "3º Bim", "4º Bim"].map((r) => `<th colspan="4">${r}</th>`).join("")}
+        <th rowspan="2">Final</th><th rowspan="2">Situação</th>
+      </tr>
+      <tr>
+        ${["b1", "b2", "b3", "b4"].map((bim) => `
+          <th>Teste</th><th>Trab.</th><th>Prova</th><th>${bim === "b2" || bim === "b4" ? "Recup." : "Média"}</th>
+        `).join("")}
+      </tr></thead><tbody>`;
+
+  t.alunos.forEach((a) => {
+    html += `<tr><td class="numcol">${a.num}</td><td class="nome">${a.nome}</td>`;
+    ["b1", "b2", "b3", "b4"].forEach((bim) => {
+      const n = a.notas[bim];
+      html += `<td><input type="number" min="0" max="10" step="0.1" inputmode="decimal" value="${n.teste}" data-nota="${a.num}|${bim}|teste" onfocus="this.select()"></td>`;
+      html += `<td><input type="number" min="0" max="10" step="0.1" inputmode="decimal" value="${n.trabalho}" data-nota="${a.num}|${bim}|trabalho" onfocus="this.select()"></td>`;
+      html += `<td><input type="number" min="0" max="10" step="0.1" inputmode="decimal" value="${n.prova}" data-nota="${a.num}|${bim}|prova" onfocus="this.select()"></td>`;
+      if (bim === "b2" || bim === "b4") {
+        const rec = a.recuperacao[bim];
+        html += `<td><input type="number" min="0" max="10" step="0.1" inputmode="decimal" id="recup-${a.num}-${bim}" value="${rec === null || rec === undefined ? "" : rec}" placeholder="${mediaBimestreBruta(a, bim).toFixed(1)}" data-recup="${a.num}|${bim}" onfocus="this.select()"></td>`;
+      } else {
+        html += `<td class="mono" id="media-${a.num}-${bim}">${mediaBimestreBruta(a, bim).toFixed(1)}</td>`;
+      }
+    });
+    const final = mediaFinalAno(a);
+    const status = statusAluno(a);
+    html += `<td class="mono" style="font-weight:700;" id="final-${a.num}">${final.toFixed(1)}</td>`;
+    html += `<td id="status-${a.num}"><span class="badge ${status === "Aprovado" ? "aprovado" : "recuperacao"}">${status}</span></td>`;
+    html += `</tr>`;
+  });
+  html += `</tbody></table></div></div>`;
+  main.innerHTML = html;
+
+  main.querySelectorAll("[data-nota]").forEach((inp) => {
+    inp.addEventListener("input", () => {
+      const [num, bim, campo] = inp.dataset.nota.split("|");
+      const a = t.alunos.find((x) => x.num === Number(num));
+      a.notas[bim][campo] = Number(inp.value);
+      agendarSalvamento();
+      atualizarLinhaNotas(t, Number(num));
+    });
+  });
+  main.querySelectorAll("[data-recup]").forEach((inp) => {
+    inp.addEventListener("input", () => {
+      const [num, bim] = inp.dataset.recup.split("|");
+      const a = t.alunos.find((x) => x.num === Number(num));
+      a.recuperacao[bim] = inp.value === "" ? null : Number(inp.value);
+      agendarSalvamento();
+      atualizarLinhaNotas(t, Number(num));
+    });
+  });
+}
+
+// Atualiza só os valores calculados de uma linha (média, final, situação) sem
+// redesenhar a tabela inteira — assim os campos de nota não perdem o foco ao digitar.
+function atualizarLinhaNotas(t, num) {
+  const a = t.alunos.find((x) => x.num === num);
+  if (!a) return;
+  ["b1", "b3"].forEach((bim) => {
+    const el = document.getElementById("media-" + num + "-" + bim);
+    if (el) el.textContent = mediaBimestreBruta(a, bim).toFixed(1);
+  });
+  ["b2", "b4"].forEach((bim) => {
+    const inp = document.getElementById("recup-" + num + "-" + bim);
+    if (inp) inp.placeholder = mediaBimestreBruta(a, bim).toFixed(1);
+  });
+  const finalEl = document.getElementById("final-" + num);
+  if (finalEl) finalEl.textContent = mediaFinalAno(a).toFixed(1);
+  const statusEl = document.getElementById("status-" + num);
+  if (statusEl) {
+    const status = statusAluno(a);
+    statusEl.innerHTML = `<span class="badge ${status === "Aprovado" ? "aprovado" : "recuperacao"}">${status}</span>`;
+  }
+}
+
+/* ======================= ABA: MAPA DE NOTAS ======================= */
+function renderMapaDeNotas() {
+  const t = turmaAtual();
+  const main = document.getElementById("mainContent");
+  const aprovados = t.alunos.filter((a) => statusAluno(a) === "Aprovado").length;
+  let html = `<div class="card">
+    <span class="eyebrow">Fechamento do ano letivo</span>
+    <h2>${t.nome} — Mapa de notas</h2>
+    <p class="sub">Resumo consolidado para impressão/PDF, no mesmo padrão do diário de classe físico.</p>
+    <div class="stat-strip">
+      <div class="stat"><div class="n">${t.alunos.length}</div><div class="l">Alunos</div></div>
+      <div class="stat"><div class="n">${aprovados}</div><div class="l">Aprovados</div></div>
+      <div class="stat"><div class="n">${t.alunos.length - aprovados}</div><div class="l">Em recuperação</div></div>
+    </div>
+    <div style="overflow-x:auto;">
+    <table class="grid" id="mapaTable">
+      <thead><tr>
+        <th>Nº</th><th style="text-align:left">Aluno(a)</th>
+        <th>1º Bim</th><th>2º Bim</th><th>3º Bim</th><th>4º Bim</th><th>Média Final</th><th>Situação</th>
+      </tr></thead><tbody>`;
+  t.alunos.forEach((a) => {
+    const b1 = mediaBimestreFinal(a, "b1"), b2 = mediaBimestreFinal(a, "b2"),
+          b3 = mediaBimestreFinal(a, "b3"), b4 = mediaBimestreFinal(a, "b4");
+    const final = mediaFinalAno(a), status = statusAluno(a);
+    html += `<tr>
+      <td class="numcol">${a.num}</td><td class="nome">${a.nome}</td>
+      <td class="mono">${b1.toFixed(1)}</td><td class="mono">${b2.toFixed(1)}</td>
+      <td class="mono">${b3.toFixed(1)}</td><td class="mono">${b4.toFixed(1)}</td>
+      <td class="mono" style="font-weight:700;">${final.toFixed(1)}</td>
+      <td><span class="badge ${status === "Aprovado" ? "aprovado" : "recuperacao"}">${status}</span></td>
+    </tr>`;
+  });
+  html += `</tbody></table></div></div>`;
+  main.innerHTML = html;
+}
+
+/* ======================= EXPORTAÇÃO PDF ======================= */
+function exportarPdfMapaDeNotas() {
+  const t = turmaAtual();
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text("Instituto de Educação Silva Nascimento", 40, 40);
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "normal");
+  doc.text("Mapa de Notas — " + t.nome + " — Ano letivo de 2026 — Prof. Glaucio Rafael", 40, 58);
+
+  const linhas = t.alunos.map((a) => {
+    const b1 = mediaBimestreFinal(a, "b1"), b2 = mediaBimestreFinal(a, "b2"),
+          b3 = mediaBimestreFinal(a, "b3"), b4 = mediaBimestreFinal(a, "b4");
+    const final = mediaFinalAno(a), status = statusAluno(a);
+    return [a.num, a.nome, b1.toFixed(1), b2.toFixed(1), b3.toFixed(1), b4.toFixed(1), final.toFixed(1), status];
+  });
+
+  doc.autoTable({
+    startY: 74,
+    head: [["Nº", "Aluno(a)", "1º Bim", "2º Bim", "3º Bim", "4º Bim", "Média Final", "Situação"]],
+    body: linhas,
+    styles: { font: "helvetica", fontSize: 9, cellPadding: 5 },
+    headStyles: { fillColor: [34, 48, 74], textColor: 255 },
+    columnStyles: { 1: { cellWidth: 220 } },
+    didParseCell: function (data) {
+      if (data.section === "body" && data.column.index === 7) {
+        data.cell.styles.textColor = data.cell.raw === "Aprovado" ? [63, 125, 88] : [166, 50, 63];
+        data.cell.styles.fontStyle = "bold";
+      }
+    }
+  });
+
+  doc.save("Mapa_de_Notas_" + t.nome.replace(/\s+/g, "_") + "_2026.pdf");
+}
+
+/* ======================= START ======================= */
+iniciarLogin();
+
+</script>
+</body>
+</html>
