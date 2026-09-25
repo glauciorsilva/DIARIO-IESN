@@ -1,239 +1,216 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Diário de Classe 2026 — Instituto Silva Nascimento</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Diário de Classe — Instituto de Educação Silva Nascimento</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{
-  --paper:#F8F4E9;
-  --paper-dark:#EFE8D6;
-  --ink:#22304A;
-  --ink-soft:#4A5773;
-  --red:#A6323F;
-  --gold:#B8933D;
-  --green:#3F7D58;
-  --line:#D8CDA9;
-  --white:#FFFFFF;
-  --shadow: 0 2px 10px rgba(34,48,74,0.08);
-}
-*{box-sizing:border-box;}
-body{
-  margin:0;
-  background:var(--paper);
-  color:var(--ink);
-  font-family:'Inter',sans-serif;
-  -webkit-font-smoothing:antialiased;
-}
-h1,h2,h3, .serif{ font-family:'Source Serif 4', serif; }
-.mono{ font-family:'IBM Plex Mono', monospace; }
+  :root {
+    --paper: #faf6ee;
+    --ink: #2b2420;
+    --red: #7a141e;
+    --gold: #c9a227;
+    --green: #2e7d32;
+    --line: #ddd2bd;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Inter", sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  h1, h2, h3, h4 { font-family: "Source Serif 4", serif; margin: 0 0 8px; }
 
-/* ---------- Cabeçalho estilo capa de diário ---------- */
-header.app-header{
-  background: linear-gradient(180deg, var(--ink) 0%, #1a2540 100%);
-  color: var(--paper);
-  padding: 22px 24px 18px;
-  position: sticky; top:0; z-index:50;
-  box-shadow: var(--shadow);
-}
-.header-row{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
-.brand{ display:flex; align-items:center; gap:12px; }
-.brand .stamp{
-  width:46px;height:46px;border-radius:50%;
-  border:2px solid var(--gold);
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Source Serif 4',serif; font-weight:700; font-size:18px; color:var(--gold);
-  flex:none;
-}
-.brand h1{ font-size:19px; margin:0; letter-spacing:.2px; }
-.brand p{ margin:2px 0 0; font-size:12px; color:#B9C2D6; }
-.header-actions{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-select#turmaSelect{
-  background: var(--paper); color:var(--ink); border:none; border-radius:8px;
-  padding:9px 12px; font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600;
-  cursor:pointer;
-}
-.btn{
-  border:none; border-radius:8px; padding:9px 14px; font-size:13px; font-weight:600;
-  cursor:pointer; font-family:'Inter',sans-serif; transition:transform .1s ease, opacity .15s ease;
-  display:inline-flex; align-items:center; gap:6px;
-}
-.btn:active{ transform: scale(0.97); }
-.btn-gold{ background:var(--gold); color:#2b2205; }
-.btn-outline{ background:transparent; color:var(--paper); border:1px solid rgba(248,244,233,0.35); }
-.btn-outline:hover{ background:rgba(248,244,233,0.1); }
-.btn-red{ background:var(--red); color:#fff; }
-.btn-green{ background:var(--green); color:#fff; }
-.sync-dot{ width:9px;height:9px;border-radius:50%; background:#8a93a8; display:inline-block; margin-right:6px;}
-.sync-dot.on{ background:#5CC98A; box-shadow:0 0 0 3px rgba(92,201,138,0.25);}
-.sync-dot.err{ background:#E2665A; box-shadow:0 0 0 3px rgba(226,102,90,0.25);}
-#syncLabel{ font-size:11px; color:#B9C2D6; font-family:'IBM Plex Mono',monospace;}
+  #loginOverlay {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #3b0f14, #7a141e 60%, #c9a227);
+    z-index: 999;
+  }
+  .login-card {
+    background: var(--paper);
+    border-radius: 14px;
+    padding: 36px 32px;
+    width: 100%;
+    max-width: 360px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    text-align: center;
+  }
+  .login-card h1 { font-size: 22px; margin-bottom: 4px; }
+  .login-card p { font-size: 13px; color: #6b6157; margin-bottom: 20px; }
+  .login-card input {
+    width: 100%; padding: 10px 12px; margin-bottom: 12px;
+    border: 1px solid var(--line); border-radius: 8px; font-size: 15px;
+  }
+  .login-card button {
+    width: 100%; padding: 11px; border: none; border-radius: 8px;
+    background: var(--red); color: white; font-size: 15px; font-weight: 600;
+    cursor: pointer;
+  }
+  .login-card button:disabled { opacity: 0.6; cursor: default; }
+  #loginErro { color: var(--red); font-size: 13px; min-height: 18px; margin-top: 8px; }
 
-/* ---------- Abas (folder tabs) ---------- */
-nav.tabs{
-  display:flex; gap:2px; padding:0 24px; background:var(--paper-dark);
-  border-bottom:1px solid var(--line); overflow-x:auto;
-}
-nav.tabs button{
-  border:none; background:transparent; padding:12px 18px; font-size:13.5px; font-weight:600;
-  color:var(--ink-soft); cursor:pointer; border-bottom:3px solid transparent; white-space:nowrap;
-  font-family:'Inter',sans-serif;
-}
-nav.tabs button.active{ color:var(--ink); border-bottom-color:var(--red); background:var(--paper); }
+  .app-header {
+    background: var(--red); color: white;
+    padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    flex-wrap: wrap;
+  }
+  .app-header .brand { font-family: "Source Serif 4", serif; font-size: 18px; font-weight: 700; }
+  .app-header .brand small { display: block; font-family: "Inter"; font-weight: 400; font-size: 11px; opacity: 0.85; }
+  .header-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .header-controls select, .header-controls button {
+    padding: 8px 12px; border-radius: 8px; border: none; font-size: 13px; cursor: pointer;
+  }
+  .header-controls button { background: rgba(255,255,255,0.15); color: white; }
+  .header-controls button:hover { background: rgba(255,255,255,0.25); }
+  .sync-indicator { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+  .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #999; }
 
-main{ max-width:1180px; margin:0 auto; padding:22px 20px 60px; }
-.card{
-  background:var(--white); border:1px solid var(--line); border-radius:12px;
-  padding:20px; margin-bottom:18px; box-shadow: var(--shadow);
-}
-.card h2{ font-size:17px; margin:0 0 4px; }
-.card .sub{ color:var(--ink-soft); font-size:12.5px; margin:0 0 14px; }
-.eyebrow{
-  display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.08em;
-  text-transform:uppercase; color:var(--red); background:rgba(166,50,63,0.08);
-  padding:3px 8px; border-radius:5px; margin-bottom:8px;
-}
+  .tabs {
+    display: flex; gap: 4px; background: #efe6d3; padding: 8px 16px;
+    border-bottom: 2px solid var(--line); flex-wrap: wrap;
+  }
+  .tabs button {
+    padding: 9px 16px; border: none; background: transparent; cursor: pointer;
+    font-size: 14px; font-weight: 600; color: #6b6157; border-radius: 8px 8px 0 0;
+  }
+  .tabs button.active { background: var(--paper); color: var(--red); }
 
-table.grid{ width:100%; border-collapse:collapse; font-size:12.5px; }
-table.grid th, table.grid td{
-  border:1px solid var(--line); padding:7px 8px; text-align:center;
-}
-table.grid th{ background:var(--paper-dark); font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:11px; color:var(--ink-soft); }
-table.grid td.nome{ text-align:left; font-weight:500; white-space:nowrap; }
-table.grid tr:hover td{ background:#FBFAF4; }
-table.grid input[type=number], table.grid input[type=text]{
-  width:56px; border:1px solid var(--line); border-radius:5px; padding:4px; text-align:center;
-  font-family:'IBM Plex Mono',monospace; font-size:12.5px;
-}
-table.grid input[type=text].wide{ width:120px; text-align:left; }
-/* Esconde as setinhas dos campos numéricos: o valor deve ser digitado direto */
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button{ -webkit-appearance:none; margin:0; }
-input[type=number]{ -moz-appearance:textfield; }
-input[type=number]:focus, input[type=text]:focus{ outline:2px solid var(--gold); outline-offset:1px; }
-.numcol{ color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; }
+  main { padding: 20px; max-width: 1400px; margin: 0 auto; }
+  .card {
+    background: white; border: 1px solid var(--line); border-radius: 12px;
+    padding: 20px; margin-bottom: 20px;
+  }
+  .hint { font-size: 13px; color: #6b6157; margin-bottom: 14px; }
 
-.badge{ display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700; font-family:'IBM Plex Mono',monospace;}
-.badge.aprovado{ background:rgba(63,125,88,0.12); color:var(--green); }
-.badge.recuperacao{ background:rgba(166,50,63,0.12); color:var(--red); }
+  .row-add { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .row-add input { flex: 1; min-width: 200px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 14px; }
 
-.toolbar{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
-.toolbar label{ font-size:12.5px; color:var(--ink-soft); display:flex; align-items:center; gap:6px; }
-.toolbar input[type=date]{ border:1px solid var(--line); border-radius:6px; padding:6px 8px; font-family:'IBM Plex Mono',monospace; font-size:12.5px;}
+  .btn {
+    padding: 9px 16px; border-radius: 8px; border: 1px solid var(--line);
+    background: #f3ede0; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink);
+  }
+  .btn-primary { background: var(--red); color: white; border-color: var(--red); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
 
-.pres-cell{ cursor:pointer; user-select:none; font-weight:700; }
-.pres-cell.P{ background:rgba(63,125,88,0.12); color:var(--green); }
-.pres-cell.F{ background:rgba(166,50,63,0.12); color:var(--red); }
-.pres-cell.vazio{ color:#c9c2a6; }
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { padding: 8px 10px; border: 1px solid var(--line); text-align: center; white-space: nowrap; }
+  th { background: #f3ede0; font-weight: 600; }
+  .nome-col { text-align: left; white-space: normal; min-width: 180px; }
+  .acoes-col { white-space: nowrap; }
 
-.datechip{ display:inline-flex; align-items:center; gap:6px; background:var(--paper-dark); border-radius:20px; padding:5px 10px 5px 12px; font-size:12px; font-family:'IBM Plex Mono',monospace;}
-.datechip button{ border:none; background:none; color:var(--red); cursor:pointer; font-weight:700; }
+  .chip {
+    border: none; border-radius: 6px; width: 32px; height: 28px; cursor: pointer;
+    font-weight: 700; font-size: 13px;
+  }
+  .chip.presente { background: #e3f2e3; color: var(--green); }
+  .chip.falta { background: #fde4e2; color: var(--red); }
 
-.extra-row{ display:flex; gap:8px; align-items:center; margin-bottom:6px; flex-wrap:wrap;}
-.extra-row input[type=text]{ flex:1; min-width:160px; border:1px solid var(--line); border-radius:6px; padding:6px 8px; font-size:13px;}
-.extra-row input[type=number]{ width:70px; border:1px solid var(--line); border-radius:6px; padding:6px 8px;}
-.small-btn{ border:none; background:var(--paper-dark); border-radius:6px; padding:5px 9px; cursor:pointer; font-weight:700; color:var(--ink-soft); font-size:13px;}
-.small-btn.del{ color:var(--red); }
+  .icon-btn {
+    border: none; background: transparent; cursor: pointer; font-size: 15px; padding: 4px 6px; border-radius: 6px;
+  }
+  .icon-btn:hover { background: #eee; }
+  .icon-btn.danger:hover { background: #fde4e2; }
 
-footer.appfoot{ text-align:center; padding:26px 20px 40px; color:var(--ink-soft); font-size:12px; font-family:'IBM Plex Mono',monospace; }
+  table input[type="text"] {
+    width: 56px; padding: 5px; border: 1px solid var(--line); border-radius: 6px; text-align: center; font-size: 13px;
+  }
+  table input[type="text"]:focus { outline: 2px solid var(--gold); }
 
-.modal-bg{ position:fixed; inset:0; background:rgba(20,26,40,0.55); display:none; align-items:center; justify-content:center; z-index:100; padding:20px;}
-.modal-bg.open{ display:flex; }
-.modal{ background:var(--white); border-radius:12px; padding:24px; max-width:480px; width:100%; box-shadow:0 10px 40px rgba(0,0,0,0.25); max-height:85vh; overflow:auto;}
-.modal h3{ margin-top:0; }
-.modal textarea{ width:100%; min-height:120px; font-family:'IBM Plex Mono',monospace; font-size:12px; border:1px solid var(--line); border-radius:8px; padding:10px;}
-.modal .row{ display:flex; gap:8px; margin-top:14px; justify-content:flex-end;}
-.hint{ font-size:12px; color:var(--ink-soft); line-height:1.5;}
-.hint a{ color:var(--red); }
+  .aluno-extra-block { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px dashed var(--line); }
+  .extra-bimestres { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 8px; }
+  .extra-bim { background: #f9f5ea; border-radius: 8px; padding: 10px; }
+  .extra-item { display: flex; gap: 4px; margin-bottom: 6px; align-items: center; }
+  .extra-item select { border-radius: 6px; border: 1px solid var(--line); font-weight: 700; }
+  .extra-item select.add { color: var(--green); }
+  .extra-item select.sub { color: var(--red); }
+  .extra-item input[type="text"] { flex: 1; padding: 5px 6px; border: 1px solid var(--line); border-radius: 6px; font-size: 12px; }
+  .extra-item input[data-extra-valor] { flex: 0 0 60px; text-align: center; }
+  .extra-total { font-size: 12px; font-weight: 600; margin-top: 6px; }
 
-.stat-strip{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:14px;}
-.stat{ background:var(--paper-dark); border-radius:10px; padding:10px 16px; min-width:110px;}
-.stat .n{ font-family:'Source Serif 4',serif; font-size:22px; font-weight:700; color:var(--ink);}
-.stat .l{ font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em;}
+  .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+  .badge-ok { background: #e3f2e3; color: var(--green); }
+  .badge-warn { background: #fde4e2; color: var(--red); }
 
-@media (max-width:720px){
-  .header-row{ flex-direction:column; align-items:flex-start; }
-  table.grid{ font-size:11px; }
-  main{ padding:14px 10px 60px; }
-}
-@media print{
-  header.app-header, nav.tabs, .toolbar, .no-print{ display:none !important; }
-  body{ background:#fff; }
-  .card{ box-shadow:none; border:1px solid #999; }
-}
+  .stat-strip { display: flex; gap: 20px; margin-bottom: 18px; flex-wrap: wrap; }
+  .stat { background: #f9f5ea; border-radius: 10px; padding: 12px 20px; text-align: center; min-width: 100px; }
+  .stat-num { display: block; font-size: 24px; font-weight: 700; font-family: "IBM Plex Mono", monospace; }
+  .stat-label { font-size: 12px; color: #6b6157; }
+
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    display: none; align-items: center; justify-content: center; z-index: 998; padding: 16px;
+  }
+  .modal {
+    background: white; border-radius: 12px; padding: 24px; max-width: 500px; width: 100%;
+  }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+  .modal textarea, .modal input[type="text"] {
+    width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 8px; font-family: inherit; font-size: 14px;
+  }
+
+  .appfoot { text-align: center; padding: 20px; font-size: 12px; color: #948a7d; }
+
+  input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none; margin: 0;
+  }
+  input[type=number] { -moz-appearance: textfield; }
 </style>
 </head>
 <body>
 
-<div id="loginOverlay" style="position:fixed;inset:0;background:linear-gradient(160deg,#1a2540 0%,#22304A 100%);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:var(--paper);border-radius:16px;padding:36px 32px;max-width:380px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.35);">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:22px;">
-      <div style="width:46px;height:46px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:'Source Serif 4',serif;font-weight:700;font-size:18px;color:var(--gold);flex:none;">ISN</div>
-      <div>
-        <h1 style="font-size:18px;margin:0;">Diário de Classe</h1>
-        <p style="margin:2px 0 0;font-size:12px;color:var(--ink-soft);">Acesso restrito</p>
-      </div>
-    </div>
+<div id="loginOverlay">
+  <div class="login-card">
+    <h1>Diário de Classe</h1>
+    <p>Instituto de Educação Silva Nascimento</p>
     <form id="loginForm">
-      <label style="display:block;font-size:12.5px;color:var(--ink-soft);margin-bottom:4px;">Usuário</label>
-      <input type="text" id="loginUser" autocomplete="username" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:14px;box-sizing:border-box;">
-      <label style="display:block;font-size:12.5px;color:var(--ink-soft);margin-bottom:4px;">Senha</label>
-      <input type="password" id="loginPass" autocomplete="current-password" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:6px;font-size:14px;box-sizing:border-box;">
-      <p id="loginErro" style="color:var(--red);font-size:12.5px;min-height:16px;margin:4px 0 14px;"></p>
-      <button type="submit" class="btn btn-red" style="width:100%;justify-content:center;padding:11px;">Entrar</button>
+      <input type="text" id="loginUser" placeholder="Usuário" autocomplete="username" required />
+      <input type="password" id="loginPass" placeholder="Senha" autocomplete="current-password" required />
+      <button type="submit">Entrar</button>
+      <div id="loginErro"></div>
     </form>
   </div>
 </div>
 
-
 <div id="appRoot" style="display:none;">
-<header class="app-header">
-  <div class="header-row">
-    <div class="brand">
-      <div class="stamp">ISN</div>
-      <div>
-        <h1>Diário de Classe — 2026</h1>
-        <p>Instituto de Educação Silva Nascimento · Prof. Glaucio Rafael</p>
-      </div>
-    </div>
-    <div class="header-actions">
+  <header class="app-header">
+    <div class="brand">Diário de Classe<small>Instituto de Educação Silva Nascimento — 2026</small></div>
+    <div class="header-controls">
       <select id="turmaSelect"></select>
-      <button class="btn btn-outline" id="btnConfigFirebase"><span class="sync-dot" id="syncDot"></span><span id="syncLabel">Local</span></button>
-      <button class="btn btn-gold" id="btnExportPdf">Gerar PDF</button>
-      <button class="btn btn-outline" id="btnSair" title="Sair">Sair</button>
+      <div class="sync-indicator"><span class="sync-dot" id="syncDot"></span><span id="syncLabel">—</span></div>
+      <button id="btnConfigFirebase">⚙ Firebase</button>
+      <button id="btnExportPdf">📄 Exportar PDF</button>
+      <button id="btnSair">Sair</button>
     </div>
-  </div>
-</header>
+  </header>
 
-<nav class="tabs" id="tabsNav">
-  <button data-tab="presenca" class="active">Presença</button>
-  <button data-tab="extra">Ponto Extra</button>
-  <button data-tab="notas">Notas</button>
-  <button data-tab="mapa">Mapa de Notas</button>
-</nav>
+  <nav class="tabs" id="tabsNav">
+    <button data-aba="presenca" class="active">Presença</button>
+    <button data-aba="extra">Ponto Extra</button>
+    <button data-aba="notas">Notas</button>
+    <button data-aba="mapa">Mapa de Notas</button>
+  </nav>
 
-<main id="mainContent"></main>
+  <main id="mainContent"></main>
 
-<footer class="appfoot">Diário digital · Instituto de Educação Silva Nascimento · dados salvos automaticamente</footer>
+  <footer class="appfoot">Diário de Classe — Prof. Glaucio Rafael • Instituto de Educação Silva Nascimento</footer>
 </div>
 
-<!-- Modal configuração Firebase -->
-<div class="modal-bg" id="modalFirebase">
+<div class="modal-overlay" id="modalFirebase">
   <div class="modal">
-    <h3>Sincronizar com Firebase</h3>
-    <p class="hint">Este diário já sincroniza automaticamente com o Firebase do Instituto Silva Nascimento. Só use este campo se quiser <strong>trocar para outro projeto</strong> Firebase: cole o objeto <span class="mono">firebaseConfig</span> (Console → Configurações do projeto → Seus apps → SDK).</p>
-    <textarea id="firebaseConfigInput" placeholder='{
-  "apiKey": "...",
-  "authDomain": "...",
-  "projectId": "...",
-  ...
-}'></textarea>
-    <div class="row">
-      <button class="btn btn-outline" id="btnRemoveFirebase" style="color:#A6323F;border-color:#A6323F">Remover sync</button>
-      <button class="btn btn-outline" id="btnCloseModal" style="color:#22304A;border-color:#22304A">Cancelar</button>
-      <button class="btn btn-green" id="btnSaveFirebase">Conectar</button>
+    <h3>Configuração do Firebase</h3>
+    <p class="hint">O sistema já está conectado ao banco de dados do projeto. Use este campo apenas se precisar trocar para outro projeto Firebase.</p>
+    <textarea id="fbConfigInput" rows="10" style="font-family:'IBM Plex Mono',monospace;font-size:12px;"></textarea>
+    <div class="modal-actions">
+      <button class="btn" id="btnRemoverFirebase">Usar padrão</button>
+      <button class="btn" id="btnFecharFirebase">Cancelar</button>
+      <button class="btn btn-primary" id="btnSalvarFirebase">Salvar e conectar</button>
     </div>
   </div>
 </div>
@@ -242,115 +219,48 @@ footer.appfoot{ text-align:center; padding:26px 20px 40px; color:var(--ink-soft)
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
 <script>
-// Dados extraídos dos Diários de Classe - 2026 (Instituto de Educação Silva Nascimento)
-// Disciplina: História / Filosofia-Ética — Prof. Glaucio Rafael
 const TURMAS_INICIAIS = {
   "6ANO": {
     nome: "6º Ano",
     alunos: [
-      "ALICE ROSA PEREIRA OLIVEIRA DA SILVA",
-      "ANA CLARA DE OLIVEIRA CASTRO",
-      "ANA JÚLIA MELO DUARTE LIMA",
-      "BENJAMIN MIGUEL DE SOUZA",
-      "CARLA RAFAELLE RABELO DA SILVA",
-      "CARLOS MIGUEL DA SILVA RODRIGUES",
-      "CAUÃ DAVI DA SILVA LEITE",
-      "DAVI SOUZA GERONCIO",
-      "DAVI LUIZ FERREIRA MENDONÇA",
-      "DAVI RODRIGUES MENDES",
-      "DAVID BRYAN PEREIRA SOUZA",
-      "ELIAS JERONYMO PEREIRA",
-      "EMANUELLE SOARES MARINHO",
-      "EMILLY LIMA DA COSTA RIBEIRO",
-      "GEOVANNA CAVALCANTE DE SOUZA",
-      "ISADORA RODRIGUES BARROS",
-      "KAREN GABRIELLE SOUTO DE CARVALHO COSTA DO NASCIMENTO",
-      "MANUELLA DA SILVA CALISTO",
-      "MARIAH GEOVANNA GUIMARÃES GAMA",
-      "MIGUEL RODRIGUES BARROS",
-      "SAMUEL CARDOSO FRANCISCO",
-      "SARAH FERNANDA VIVONE DE SOUSA",
-      "SARAH TONE CARVALHO",
-      "SOPHIA LETICIA MARIANO ALVES",
-      "VALLENTINA SILVA BARBOSA",
+      "ALICE ROSA PEREIRA OLIVEIRA DA SILVA","ANA CLARA DE OLIVEIRA CASTRO","ANA JÚLIA MELO DUARTE LIMA",
+      "BENJAMIN MIGUEL DE SOUZA","CARLA RAFAELLE RABELO DA SILVA","CARLOS MIGUEL DA SILVA RODRIGUES",
+      "CAUÃ DAVI DA SILVA LEITE","DAVI SOUZA GERONCIO","DAVI LUIZ FERREIRA MENDONÇA","DAVI RODRIGUES MENDES",
+      "DAVID BRYAN PEREIRA SOUZA","ELIAS JERONYMO PEREIRA","EMANUELLE SOARES MARINHO","EMILLY LIMA DA COSTA RIBEIRO",
+      "GEOVANNA CAVALCANTE DE SOUZA","ISADORA RODRIGUES BARROS","KAREN GABRIELLE SOUTO DE CARVALHO COSTA DO NASCIMENTO",
+      "MANUELLA DA SILVA CALISTO","MARIAH GEOVANNA GUIMARÃES GAMA","MIGUEL RODRIGUES BARROS","SAMUEL CARDOSO FRANCISCO",
+      "SARAH FERNANDA VIVONE DE SOUSA","SARAH TONE CARVALHO","SOPHIA LETICIA MARIANO ALVES","VALLENTINA SILVA BARBOSA",
       "YASMIN TAVARES LEMOS"
     ]
   },
   "7ANO": {
     nome: "7º Ano",
     alunos: [
-      "ANNA PAULA FELISBINO VIEIRA DOS SANTOS",
-      "DAVI RIBEIRO CASTILHO DE ASSIS",
-      "ELENA CONCEIÇÃO DA SILVA MOREIRA",
-      "ELIZA LETÍCIA DE CASTRO DE SOUZA",
-      "HEITOR SANTOS SECUNDINO",
-      "JOÃO PEDRO TEIXEIRA MAGALHÃES",
-      "LUIZ FELIPE DA SILVA MELO",
-      "MANUELA IZIDORO XIMENES",
-      "MARIA EDUARDA CABRAL GARCIA",
-      "MARIA EDUARDA GOMES DA SILVA",
-      "RAFAELA SOARES DO NASCIMENTO",
-      "RYAN CARLOS DE OLIVEIRA JARDIM",
-      "SOFIA BEATRIZ SERPA MARTINS"
+      "ANNA PAULA FELISBINO VIEIRA DOS SANTOS","DAVI RIBEIRO CASTILHO DE ASSIS","ELENA CONCEIÇÃO DA SILVA MOREIRA",
+      "ELIZA LETÍCIA DE CASTRO DE SOUZA","HEITOR SANTOS SECUNDINO","JOÃO PEDRO TEIXEIRA MAGALHÃES",
+      "LUIZ FELIPE DA SILVA MELO","MANUELA IZIDORO XIMENES","MARIA EDUARDA CABRAL GARCIA","MARIA EDUARDA GOMES DA SILVA",
+      "RAFAELA SOARES DO NASCIMENTO","RYAN CARLOS DE OLIVEIRA JARDIM","SOFIA BEATRIZ SERPA MARTINS"
     ]
   },
   "8ANO": {
     nome: "8º Ano",
     alunos: [
-      "EMANUELLY VITÓRIA GOMES DE OLIVEIRA",
-      "FELIPE DA SILVA GONÇALVES",
-      "KEMILY SILVA FERREIRA LOPES",
-      "KETHELEN CAROLINE LISBOA",
-      "MIGUEL ANTHONNY S. ALBUQUERQUE",
-      "RICHARD GUIMARÃES SANTOS",
-      "RIQUELME ALMEIDA DE OLIVEIRA",
-      "ROBSON MANOEL DORIS DA ROCHA",
-      "SOFIA VITORIA FERREIRA MENDONÇA"
+      "EMANUELLY VITÓRIA GOMES DE OLIVEIRA","FELIPE DA SILVA GONÇALVES","KEMILY SILVA FERREIRA LOPES",
+      "KETHELEN CAROLINE LISBOA","MIGUEL ANTHONNY S. ALBUQUERQUE","RICHARD GUIMARÃES SANTOS",
+      "RIQUELME ALMEIDA DE OLIVEIRA","ROBSON MANOEL DORIS DA ROCHA","SOFIA VITORIA FERREIRA MENDONÇA"
     ]
   },
   "9ANO": {
     nome: "9º Ano",
     alunos: [
-      "ANA CLARA NASCIMENTO SANTOS",
-      "ARTHUR DOS PRAZERES DIAS",
-      "DAVI FREITAS LEAL",
-      "GEOVANA CARVALHO RIBEIRO",
-      "GEOVANNA AQUINO FIRMINO",
-      "MATHEUS MONTEIRO DE SOUZA",
-      "MIGUEL DORIS DA ROCHA",
-      "NICKOLAS GABRIEL NUNES OLIVEIRA RIGUETI",
-      "PEDRO HENRIQUE MOREIRA REIS",
-      "SOPHIA TONE CARVALHO"
+      "ANA CLARA NASCIMENTO SANTOS","ARTHUR DOS PRAZERES DIAS","DAVI FREITAS LEAL","GEOVANA CARVALHO RIBEIRO",
+      "GEOVANNA AQUINO FIRMINO","MATHEUS MONTEIRO DE SOUZA","MIGUEL DORIS DA ROCHA",
+      "NICKOLAS GABRIEL NUNES OLIVEIRA RIGUETI","PEDRO HENRIQUE MOREIRA REIS","SOPHIA TONE CARVALHO"
     ]
   }
 };
 
-
-/* ===================== ESTADO E MODELO DE DADOS =====================
-Estrutura por turma:
-{
-  nome: "6º Ano",
-  disciplina: "História",
-  alunos: [
-    {
-      num: 1,
-      nome: "ALICE ...",
-      observacoes: "",
-      presencas: { "2026-08-10": "P" | "F" },
-      pontosExtra: { b1: [{desc, valor, tipo:"add"|"sub"}], b2: [...], b3: [...], b4: [...] },
-      notas: {
-        b1: { teste: 0, trabalho: 0, prova: 0 },
-        b2: { teste: 0, trabalho: 0, prova: 0 },
-        b3: { teste: 0, trabalho: 0, prova: 0 },
-        b4: { teste: 0, trabalho: 0, prova: 0 }
-      },
-      recuperacao: { b2: null, b4: null }
-    }, ...
-  ]
-}
-======================================================================= */
-
-const PESOS = { teste: 3, trabalho: 1, prova: 6 }; // soma 10
+const PESOS = { teste: 3, trabalho: 1, prova: 6 };
 
 function clamp10(v) {
   v = Number(v) || 0;
@@ -367,19 +277,14 @@ function somaPontosExtra(aluno, bim) {
   }, 0);
 }
 
-// Média ponderada (teste 3 + trabalho 1 + prova 6) / 10, + pontos extra, limitada a 10
 function mediaBimestreBruta(aluno, bim) {
   const n = (aluno.notas && aluno.notas[bim]) || { teste: 0, trabalho: 0, prova: 0 };
-  const base =
-    (Number(n.teste) || 0) * PESOS.teste +
-    (Number(n.trabalho) || 0) * PESOS.trabalho +
-    (Number(n.prova) || 0) * PESOS.prova;
+  const base = (Number(n.teste)||0)*PESOS.teste + (Number(n.trabalho)||0)*PESOS.trabalho + (Number(n.prova)||0)*PESOS.prova;
   const media = base / 10;
   const extra = somaPontosExtra(aluno, bim);
   return clamp10(media + extra);
 }
 
-// Média final do bimestre já considerando recuperação (b2 e b4), quando informada
 function mediaBimestreFinal(aluno, bim) {
   const bruta = mediaBimestreBruta(aluno, bim);
   if ((bim === "b2" || bim === "b4") && aluno.recuperacao && aluno.recuperacao[bim] !== null && aluno.recuperacao[bim] !== undefined && aluno.recuperacao[bim] !== "") {
@@ -389,34 +294,24 @@ function mediaBimestreFinal(aluno, bim) {
 }
 
 function mediaFinalAno(aluno) {
-  const b1 = mediaBimestreFinal(aluno, "b1");
-  const b2 = mediaBimestreFinal(aluno, "b2");
-  const b3 = mediaBimestreFinal(aluno, "b3");
-  const b4 = mediaBimestreFinal(aluno, "b4");
-  return clamp10((b1 + b2 + b3 + b4) / 4);
+  const b1 = mediaBimestreFinal(aluno,"b1"), b2 = mediaBimestreFinal(aluno,"b2"),
+        b3 = mediaBimestreFinal(aluno,"b3"), b4 = mediaBimestreFinal(aluno,"b4");
+  return clamp10((b1+b2+b3+b4)/4);
 }
 
-function statusAluno(aluno) {
-  return mediaFinalAno(aluno) >= 7 ? "Aprovado" : "Em recuperação";
-}
+function statusAluno(aluno) { return mediaFinalAno(aluno) >= 7 ? "Aprovado" : "Em recuperação"; }
 
-function alunoEmptyExtra() {
-  return { teste: 0, trabalho: 0, prova: 0 };
-}
+function alunoEmptyExtra() { return { teste: 0, trabalho: 0, prova: 0 }; }
 
 function novoAluno(num, nome) {
   return {
-    num,
-    nome,
-    observacoes: "",
-    presencas: {},
+    num, nome, observacoes: "", presencas: {},
     pontosExtra: { b1: [], b2: [], b3: [], b4: [] },
     notas: { b1: alunoEmptyExtra(), b2: alunoEmptyExtra(), b3: alunoEmptyExtra(), b4: alunoEmptyExtra() },
     recuperacao: { b2: null, b4: null }
   };
 }
 
-// Reordena os alunos da turma em ordem alfabética e renumera (1, 2, 3...)
 function reordenarERenumerar(turma) {
   turma.alunos.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" }));
   turma.alunos.forEach((a, i) => { a.num = i + 1; });
@@ -442,40 +337,31 @@ function removerAlunoTurma(turma, num) {
 function construirEstadoInicial(turmasBase) {
   const turmas = {};
   Object.entries(turmasBase).forEach(([id, t]) => {
-    turmas[id] = {
-      nome: t.nome,
-      disciplina: "História / Filosofia-Ética",
-      alunos: t.alunos.map((nome, i) => novoAluno(i + 1, nome))
-    };
+    turmas[id] = { nome: t.nome, disciplina: "História / Filosofia-Ética", alunos: t.alunos.map((nome, i) => novoAluno(i+1, nome)) };
   });
   return { turmas, firebaseConfig: null };
 }
 
-
-
-/* ======================= AUTENTICAÇÃO (FIREBASE AUTH) =======================
-Login real via Firebase Authentication (validado no servidor do Firebase, não
-no navegador). O usuário digita "kronus" na tela, mas por trás mapeamos para
-o e-mail cadastrado no Firebase Auth, que exige esse formato. O token obtido
-aqui também é usado para autorizar as chamadas ao Firestore (auth != null nas
-regras), então sem login válido não é possível ler nem gravar os dados. */
 const AUTH_API_KEY = "AIzaSyDm7rPjehG8Js13y1WOrWDL05bt0ObDN30";
 const LOGIN_USER_MAP = { kronus: "rafael.glaucio2@gmail.com" };
 const AUTH_SESSION_KEY = "isn_diario_2026_auth";
-
-let AUTH_TOKENS = null; // { idToken, refreshToken, expiraEm (timestamp ms) }
+let AUTH_TOKENS = null;
 
 function salvarAuthSession() {
-  if (AUTH_TOKENS) sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(AUTH_TOKENS));
-  else sessionStorage.removeItem(AUTH_SESSION_KEY);
+  try {
+    if (AUTH_TOKENS) {
+      sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(AUTH_TOKENS));
+    } else {
+      sessionStorage.removeItem(AUTH_SESSION_KEY);
+    }
+  } catch (e) {}
 }
 
 function carregarAuthSession() {
   try {
     const raw = sessionStorage.getItem(AUTH_SESSION_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch (e) {}
-  return null;
+    if (raw) AUTH_TOKENS = JSON.parse(raw);
+  } catch (e) { AUTH_TOKENS = null; }
 }
 
 function mostrarApp() {
@@ -484,103 +370,96 @@ function mostrarApp() {
   iniciarApp();
 }
 
-function mostrarLoginComErro(msg) {
-  document.getElementById("loginOverlay").style.display = "flex";
-  document.getElementById("appRoot").style.display = "none";
-  const erroEl = document.getElementById("loginErro");
-  if (erroEl) erroEl.textContent = msg || "";
-}
-
 async function firebaseSignIn(email, senha) {
-  const url = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + encodeURIComponent(AUTH_API_KEY);
-  const res = await fetch(url, {
+  const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${AUTH_API_KEY}`;
+  const resp = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password: senha, returnSecureToken: true })
   });
-  const data = await res.json();
-  if (!res.ok) throw data;
-  return {
+  const data = await resp.json();
+  if (!resp.ok) {
+    const err = new Error((data.error && data.error.message) || "Erro de autenticação");
+    err.code = data.error && data.error.message;
+    throw err;
+  }
+  AUTH_TOKENS = {
     idToken: data.idToken,
     refreshToken: data.refreshToken,
-    expiraEm: Date.now() + (Number(data.expiresIn) || 3600) * 1000 - 60000 // renova 1 min antes de expirar
+    expiraEm: Date.now() + (Number(data.expiresIn) || 3600) * 1000
   };
+  salvarAuthSession();
+  return AUTH_TOKENS;
 }
 
 async function firebaseRefreshToken(refreshToken) {
-  const url = "https://securetoken.googleapis.com/v1/token?key=" + encodeURIComponent(AUTH_API_KEY);
-  const res = await fetch(url, {
+  const url = `https://securetoken.googleapis.com/v1/token?key=${AUTH_API_KEY}`;
+  const resp = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: "grant_type=refresh_token&refresh_token=" + encodeURIComponent(refreshToken)
+    body: `grant_type=refresh_token&refresh_token=${encodeURIComponent(refreshToken)}`
   });
-  const data = await res.json();
-  if (!res.ok) throw data;
-  return {
+  const data = await resp.json();
+  if (!resp.ok) {
+    const err = new Error((data.error && data.error.message) || "Erro ao renovar sessão");
+    throw err;
+  }
+  AUTH_TOKENS = {
     idToken: data.id_token,
     refreshToken: data.refresh_token,
-    expiraEm: Date.now() + (Number(data.expires_in) || 3600) * 1000 - 60000
+    expiraEm: Date.now() + (Number(data.expires_in) || 3600) * 1000
   };
+  salvarAuthSession();
+  return AUTH_TOKENS;
 }
 
-// Garante um idToken válido para usar nas chamadas ao Firestore, renovando se necessário
 async function obterIdTokenValido() {
-  if (!AUTH_TOKENS) return null;
-  if (Date.now() < AUTH_TOKENS.expiraEm) return AUTH_TOKENS.idToken;
-  try {
-    AUTH_TOKENS = await firebaseRefreshToken(AUTH_TOKENS.refreshToken);
-    salvarAuthSession();
-    return AUTH_TOKENS.idToken;
-  } catch (e) {
-    console.error("Falha ao renovar sessão:", e);
-    AUTH_TOKENS = null;
-    salvarAuthSession();
-    return null;
+  if (!AUTH_TOKENS) throw new Error("Sessão não autenticada");
+  if (Date.now() > AUTH_TOKENS.expiraEm - 60000) {
+    await firebaseRefreshToken(AUTH_TOKENS.refreshToken);
   }
+  return AUTH_TOKENS.idToken;
 }
 
 function mensagemErroAuth(err) {
-  const codigo = (err && err.error && err.error.message) || "";
-  if (codigo.includes("INVALID_LOGIN_CREDENTIALS") || codigo.includes("EMAIL_NOT_FOUND") || codigo.includes("INVALID_PASSWORD")) {
+  const code = String((err && err.code) || (err && err.message) || "");
+  if (code.includes("EMAIL_NOT_FOUND") || code.includes("INVALID_PASSWORD") || code.includes("INVALID_LOGIN_CREDENTIALS")) {
     return "Usuário ou senha incorretos.";
   }
-  if (codigo.includes("USER_DISABLED")) return "Este usuário foi desativado.";
-  if (codigo.includes("TOO_MANY_ATTEMPTS")) return "Muitas tentativas seguidas. Aguarde alguns minutos e tente de novo.";
-  if (err instanceof TypeError || /failed to fetch/i.test(String(err && err.message))) {
-    return "Não foi possível conectar ao servidor de login — confira sua internet.";
-  }
-  return "Não foi possível entrar. Detalhe técnico: " + (codigo || (err && err.message) || String(err));
+  if (code.includes("USER_DISABLED")) return "Este usuário foi desativado.";
+  if (code.includes("TOO_MANY_ATTEMPTS")) return "Muitas tentativas. Aguarde um pouco e tente novamente.";
+  return "Não foi possível entrar. Verifique sua conexão e tente novamente.";
 }
 
 function iniciarLogin() {
-  const sessao = carregarAuthSession();
-  if (sessao && sessao.idToken) {
-    AUTH_TOKENS = sessao;
+  carregarAuthSession();
+  if (AUTH_TOKENS) {
     mostrarApp();
     return;
   }
-  document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  const form = document.getElementById("loginForm");
+  const erroEl = document.getElementById("loginErro");
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const userDigitado = document.getElementById("loginUser").value.trim().toLowerCase();
-    const pass = document.getElementById("loginPass").value;
-    const erroEl = document.getElementById("loginErro");
-    const btnEntrar = e.target.querySelector("button[type=submit]");
     erroEl.textContent = "";
-    if (!userDigitado || !pass) { erroEl.textContent = "Preencha usuário e senha."; return; }
-    const email = LOGIN_USER_MAP[userDigitado];
-    if (!email) { erroEl.textContent = "Usuário ou senha incorretos."; return; }
-    btnEntrar.disabled = true;
-    btnEntrar.textContent = "Entrando...";
+    const usuario = document.getElementById("loginUser").value.trim().toLowerCase();
+    const senha = document.getElementById("loginPass").value;
+    const email = LOGIN_USER_MAP[usuario];
+    if (!email) {
+      erroEl.textContent = "Usuário ou senha incorretos.";
+      return;
+    }
+    const btn = form.querySelector("button[type=submit]");
+    btn.disabled = true;
+    btn.textContent = "Entrando...";
     try {
-      AUTH_TOKENS = await firebaseSignIn(email, pass);
-      salvarAuthSession();
+      await firebaseSignIn(email, senha);
       mostrarApp();
     } catch (err) {
-      console.error(err);
       erroEl.textContent = mensagemErroAuth(err);
     } finally {
-      btnEntrar.disabled = false;
-      btnEntrar.textContent = "Entrar";
+      btn.disabled = false;
+      btn.textContent = "Entrar";
     }
   });
 }
@@ -591,668 +470,703 @@ function sair() {
   location.reload();
 }
 
-/* ======================= ESTADO GLOBAL ======================= */
 const STORAGE_KEY = "isn_diario_2026_v1";
 const FB_CONFIG_KEY = "isn_diario_2026_fbconfig";
 const FIRESTORE_COLLECTION = "diario_silva_nascimento";
 const FIRESTORE_DOC = "estado_2026";
 
-// Config padrão do projeto Firebase do Instituto Silva Nascimento — já embutida,
-// então o app conecta sozinho ao abrir. Pode ser trocada pelo botão de sincronização.
-// Sincroniza via API REST do Firestore (fetch simples), sem depender do SDK com
-// conexão contínua — mais compatível com redes/proxies restritivos.
 const DEFAULT_FIREBASE_CONFIG = {
   apiKey: "AIzaSyDm7rPjehG8Js13y1WOrWDL05bt0ObDN30",
   authDomain: "fundamental-dfe46.firebaseapp.com",
   projectId: "fundamental-dfe46",
-  storageBucket: "fundamental-dfe46.firebasestorage.app",
-  messagingSenderId: "727080402907",
-  appId: "1:727080402907:web:a28581d1bbc1c268b6b1fe",
-  measurementId: "G-TZPKZ9ZYC3"
+  storageBucket: "fundamental-dfe46.appspot.com",
+  messagingSenderId: "000000000000",
+  appId: "1:000000000000:web:0000000000000000000000"
 };
 
 let STATE = null;
 let TURMA_ATUAL = null;
 let ABA_ATUAL = "presenca";
-let FB_CFG_ATIVA = null; // { apiKey, projectId }
+let FB_CFG_ATIVA = null;
 let saveTimeout = null;
 
-/* ======================= PERSISTÊNCIA LOCAL ======================= */
 function carregarEstadoLocal() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
-  } catch (e) { console.warn("Falha ao ler localStorage", e); }
+  } catch (e) {}
   return null;
 }
 
 function salvarLocal() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE)); }
-  catch (e) { console.warn("Falha ao salvar localStorage", e); }
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
+  } catch (e) {}
 }
 
 function setSyncStatus(mode) {
   const dot = document.getElementById("syncDot");
   const label = document.getElementById("syncLabel");
-  dot.className = "sync-dot" + (mode === "on" ? " on" : mode === "err" ? " err" : "");
-  label.textContent = mode === "on" ? "Sincronizado" : mode === "err" ? "Erro de sync" : mode === "saving" ? "Salvando..." : "Local";
+  if (!dot || !label) return;
+  const modos = {
+    ok: { cor: "#2e7d32", txt: "Sincronizado" },
+    salvando: { cor: "#c9a227", txt: "Salvando..." },
+    erro: { cor: "#b3261e", txt: "Erro de sincronização" },
+    offline: { cor: "#777", txt: "Modo local" }
+  };
+  const m = modos[mode] || modos.offline;
+  dot.style.background = m.cor;
+  label.textContent = m.txt;
 }
 
-/* ======================= FIRESTORE VIA REST (fetch) ======================= */
 function firestoreDocUrl(cfg) {
-  return "https://firestore.googleapis.com/v1/projects/" + encodeURIComponent(cfg.projectId) +
-    "/databases/(default)/documents/" + FIRESTORE_COLLECTION + "/" + FIRESTORE_DOC +
-    "?key=" + encodeURIComponent(cfg.apiKey);
+  return `https://firestore.googleapis.com/v1/projects/${cfg.projectId}/databases/(default)/documents/${FIRESTORE_COLLECTION}/${FIRESTORE_DOC}`;
+}
+
+function jsToFirestoreValue(v) {
+  if (v === null || v === undefined) return { nullValue: null };
+  if (typeof v === "string") return { stringValue: v };
+  if (typeof v === "boolean") return { booleanValue: v };
+  if (typeof v === "number") return { doubleValue: v };
+  if (Array.isArray(v)) return { arrayValue: { values: v.map(jsToFirestoreValue) } };
+  if (typeof v === "object") {
+    const fields = {};
+    Object.entries(v).forEach(([k, val]) => { fields[k] = jsToFirestoreValue(val); });
+    return { mapValue: { fields } };
+  }
+  return { stringValue: String(v) };
+}
+
+function firestoreValueToJs(fv) {
+  if (!fv) return null;
+  if ("stringValue" in fv) return fv.stringValue;
+  if ("booleanValue" in fv) return fv.booleanValue;
+  if ("doubleValue" in fv) return fv.doubleValue;
+  if ("integerValue" in fv) return Number(fv.integerValue);
+  if ("nullValue" in fv) return null;
+  if ("arrayValue" in fv) return (fv.arrayValue.values || []).map(firestoreValueToJs);
+  if ("mapValue" in fv) {
+    const obj = {};
+    Object.entries(fv.mapValue.fields || {}).forEach(([k, val]) => { obj[k] = firestoreValueToJs(val); });
+    return obj;
+  }
+  return null;
 }
 
 async function firestoreGet(cfg) {
-  const idToken = await obterIdTokenValido();
-  const headers = idToken ? { Authorization: "Bearer " + idToken } : {};
-  const res = await fetch(firestoreDocUrl(cfg), { method: "GET", headers });
-  if (res.status === 404) return null; // documento ainda não existe — primeira vez
-  if (!res.ok) { const body = await res.json().catch(() => ({})); throw { httpStatus: res.status, body }; }
-  const doc = await res.json();
-  if (!doc || !doc.fields || !doc.fields.payload || !doc.fields.payload.stringValue) return null;
-  return JSON.parse(doc.fields.payload.stringValue);
+  const token = await obterIdTokenValido();
+  const resp = await fetch(firestoreDocUrl(cfg), {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (resp.status === 404) return null;
+  if (!resp.ok) {
+    const err = new Error(`Firestore GET falhou (${resp.status})`);
+    err.status = resp.status;
+    throw err;
+  }
+  const data = await resp.json();
+  if (!data.fields) return null;
+  const obj = {};
+  Object.entries(data.fields).forEach(([k, v]) => { obj[k] = firestoreValueToJs(v); });
+  return obj;
 }
 
 async function firestoreSet(cfg, stateObj) {
-  const idToken = await obterIdTokenValido();
-  const url = firestoreDocUrl(cfg) + "&updateMask.fieldPaths=payload&updateMask.fieldPaths=atualizadoEm";
-  const body = {
-    fields: {
-      payload: { stringValue: JSON.stringify(stateObj) },
-      atualizadoEm: { stringValue: new Date().toISOString() }
-    }
-  };
-  const headers = { "Content-Type": "application/json" };
-  if (idToken) headers.Authorization = "Bearer " + idToken;
-  const res = await fetch(url, { method: "PATCH", headers, body: JSON.stringify(body) });
-  if (!res.ok) { const respBody = await res.json().catch(() => ({})); throw { httpStatus: res.status, body: respBody }; }
-  return res.json();
+  const token = await obterIdTokenValido();
+  const fields = {};
+  Object.entries(stateObj).forEach(([k, v]) => { fields[k] = jsToFirestoreValue(v); });
+  const mask = Object.keys(stateObj).map((k) => `updateMask.fieldPaths=${encodeURIComponent(k)}`).join("&");
+  const url = `${firestoreDocUrl(cfg)}?${mask}`;
+  const resp = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ fields })
+  });
+  if (!resp.ok) {
+    const err = new Error(`Firestore PATCH falhou (${resp.status})`);
+    err.status = resp.status;
+    throw err;
+  }
+  return true;
 }
 
 function initFirebaseFromStorage() {
-  const raw = localStorage.getItem(FB_CONFIG_KEY);
-  if (raw) {
-    try {
-      const cfg = JSON.parse(raw);
-      conectarFirebase(cfg, true);
-      return;
-    } catch (e) { console.warn("Config firebase inválida salva", e); }
-  }
-  conectarFirebase(DEFAULT_FIREBASE_CONFIG, true);
+  let cfg = DEFAULT_FIREBASE_CONFIG;
+  try {
+    const raw = localStorage.getItem(FB_CONFIG_KEY);
+    if (raw) cfg = JSON.parse(raw);
+  } catch (e) {}
+  conectarFirebase(cfg, true);
 }
 
-function conectarFirebase(cfg, silencioso) {
-  if (!cfg || !cfg.apiKey || !cfg.projectId) {
-    setSyncStatus("err");
-    if (!silencioso) alert("Configuração do Firebase inválida: faltam apiKey e/ou projectId.");
-    return;
-  }
-  FB_CFG_ATIVA = { apiKey: cfg.apiKey, projectId: cfg.projectId };
-  localStorage.setItem(FB_CONFIG_KEY, JSON.stringify(cfg));
-  setSyncStatus("saving");
-  firestoreGet(FB_CFG_ATIVA).then((remoto) => {
-    if (remoto) {
+async function conectarFirebase(cfg, silencioso) {
+  FB_CFG_ATIVA = cfg;
+  setSyncStatus("salvando");
+  try {
+    const remoto = await firestoreGet(cfg);
+    if (remoto && remoto.turmas) {
       STATE = remoto;
       salvarLocal();
       renderTurmaSelect();
       renderAll();
     }
-    setSyncStatus("on");
-  }).catch((err) => {
-    console.error(err);
-    setSyncStatus("err");
-    if (!silencioso) mostrarErroFirebase(err);
-  });
+    setSyncStatus("ok");
+    if (!silencioso) {
+      alert("Conectado ao Firebase com sucesso!");
+    }
+  } catch (err) {
+    mostrarErroFirebase(err);
+  }
 }
 
 function mostrarErroFirebase(err) {
-  const httpStatus = err && err.httpStatus;
-  const msgApi = err && err.body && err.body.error && err.body.error.message;
-  const msg = msgApi || (err && err.message) || String(err);
-  let explicacao = "";
-  if (httpStatus === 403 || /permission/i.test(msg)) {
-    explicacao = "Acesso negado pelas regras do Firestore. Como as regras agora exigem login (request.auth != null), confira se: 1) você está logado (tente sair e entrar de novo); 2) o Authentication com Email/Senha está ativado no Console do Firebase; 3) o usuário kronus foi criado em Authentication → Users.";
-  } else if (httpStatus === 404 || /not.?found|does not exist/i.test(msg)) {
-    explicacao = "O banco Firestore ainda não foi criado neste projeto (ou o banco não se chama '(default)'). No Console do Firebase, vá em Compilação → Firestore Database → Criar banco de dados e tente novamente.";
-  } else if (/api key/i.test(msg)) {
-    explicacao = "A apiKey parece inválida. Copie novamente o firebaseConfig em Configurações do projeto → Seus apps → SDK do Firebase.";
-  } else if (err instanceof TypeError || /failed to fetch|networkerror/i.test(msg)) {
-    explicacao = "Não foi possível nem abrir a conexão HTTPS com o Firestore — provavelmente firewall/proxy/antivírus da rede atual está bloqueando *.googleapis.com. Teste em outra rede (ex.: dados móveis do celular) para confirmar.";
-  } else {
-    explicacao = "Detalhe técnico: " + msg;
+  setSyncStatus("erro");
+  const status = err && err.status;
+  let msg = "Erro ao sincronizar com o Firebase.";
+  if (status === 403) {
+    msg = "Acesso negado pelo Firebase (403). Verifique se você está logado e se as regras do Firestore permitem acesso autenticado.";
+  } else if (status === 404) {
+    msg = "Banco de dados ainda não foi criado no Firebase Console (Firestore Database).";
+  } else if (!status) {
+    msg = "Não foi possível conectar ao Firebase. Verifique sua conexão de internet.";
   }
-  alert("Não foi possível conectar ao Firebase.\n\n" + explicacao);
+  console.warn(msg, err);
 }
 
 function agendarSalvamento() {
   salvarLocal();
-  if (!FB_CFG_ATIVA) return;
-  setSyncStatus("saving");
-  clearTimeout(saveTimeout);
-  saveTimeout = setTimeout(() => {
-    firestoreSet(FB_CFG_ATIVA, STATE)
-      .then(() => setSyncStatus("on"))
-      .catch((err) => {
-        console.error(err);
-        setSyncStatus("err");
-        if (!window.__ultimoErroMostrado || Date.now() - window.__ultimoErroMostrado > 8000) {
-          window.__ultimoErroMostrado = Date.now();
-          mostrarErroFirebase(err);
-        }
-      });
+  setSyncStatus("salvando");
+  if (saveTimeout) clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(async () => {
+    if (!FB_CFG_ATIVA) { setSyncStatus("offline"); return; }
+    try {
+      await firestoreSet(FB_CFG_ATIVA, STATE);
+      setSyncStatus("ok");
+    } catch (err) {
+      mostrarErroFirebase(err);
+    }
   }, 700);
 }
 
-/* ======================= INICIALIZAÇÃO ======================= */
 function iniciarApp() {
-  STATE = carregarEstadoLocal() || construirEstadoInicial(TURMAS_INICIAIS);
-  // garante que turmas novas do código apareçam mesmo se já havia estado salvo antigo
-  Object.entries(TURMAS_INICIAIS).forEach(([id, t]) => {
-    if (!STATE.turmas[id]) {
-      STATE.turmas[id] = { nome: t.nome, disciplina: "História / Filosofia-Ética", alunos: t.alunos.map((nome, i) => novoAluno(i + 1, nome)) };
-    }
-  });
+  const local = carregarEstadoLocal();
+  if (local && local.turmas) {
+    STATE = local;
+    Object.entries(TURMAS_INICIAIS).forEach(([id, t]) => {
+      if (!STATE.turmas[id]) {
+        STATE.turmas[id] = { nome: t.nome, disciplina: "História / Filosofia-Ética", alunos: t.alunos.map((nome, i) => novoAluno(i + 1, nome)) };
+      }
+    });
+  } else {
+    STATE = construirEstadoInicial(TURMAS_INICIAIS);
+  }
   TURMA_ATUAL = Object.keys(STATE.turmas)[0];
   renderTurmaSelect();
-  renderAll();
   ligarEventosGlobais();
-  try { initFirebaseFromStorage(); }
-  catch (e) { console.error("Falha ao iniciar sincronização Firebase (app continua funcionando localmente):", e); setSyncStatus("err"); }
+  renderAll();
+  try {
+    initFirebaseFromStorage();
+  } catch (e) {
+    console.warn("Firebase init falhou", e);
+    setSyncStatus("offline");
+  }
 }
 
 function renderTurmaSelect() {
   const sel = document.getElementById("turmaSelect");
-  sel.innerHTML = "";
-  Object.entries(STATE.turmas).forEach(([id, t]) => {
-    const opt = document.createElement("option");
-    opt.value = id; opt.textContent = t.nome + " (" + t.alunos.length + " alunos)";
-    sel.appendChild(opt);
-  });
+  sel.innerHTML = Object.entries(STATE.turmas).map(([id, t]) => `<option value="${id}">${t.nome}</option>`).join("");
   sel.value = TURMA_ATUAL;
 }
 
 function turmaAtual() { return STATE.turmas[TURMA_ATUAL]; }
 
-/* ======================= EVENTOS GLOBAIS ======================= */
 function ligarEventosGlobais() {
   document.getElementById("turmaSelect").addEventListener("change", (e) => {
     TURMA_ATUAL = e.target.value;
     renderAll();
   });
 
-  document.querySelectorAll("#tabsNav button").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      ABA_ATUAL = btn.dataset.tab;
-      document.querySelectorAll("#tabsNav button").forEach((b) => b.classList.toggle("active", b === btn));
-      renderAll();
+  document.getElementById("tabsNav").addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-aba]");
+    if (!btn) return;
+    ABA_ATUAL = btn.dataset.aba;
+    document.querySelectorAll("#tabsNav [data-aba]").forEach((b) => b.classList.toggle("active", b === btn));
+    renderAll();
+  });
+
+  const btnCfg = document.getElementById("btnConfigFirebase");
+  if (btnCfg) {
+    btnCfg.addEventListener("click", () => {
+      document.getElementById("modalFirebase").style.display = "flex";
+      const cfgAtual = FB_CFG_ATIVA || DEFAULT_FIREBASE_CONFIG;
+      document.getElementById("fbConfigInput").value = JSON.stringify(cfgAtual, null, 2);
     });
-  });
+  }
 
-  document.getElementById("btnConfigFirebase").addEventListener("click", () => {
-    const raw = localStorage.getItem(FB_CONFIG_KEY);
-    const cfgAtual = raw ? JSON.parse(raw) : DEFAULT_FIREBASE_CONFIG;
-    document.getElementById("firebaseConfigInput").value = JSON.stringify(cfgAtual, null, 2);
-    document.getElementById("modalFirebase").classList.add("open");
-  });
-  document.getElementById("btnCloseModal").addEventListener("click", () => {
-    document.getElementById("modalFirebase").classList.remove("open");
-  });
-  document.getElementById("btnSaveFirebase").addEventListener("click", () => {
-    const txt = document.getElementById("firebaseConfigInput").value.trim();
-    if (!txt) { alert("Cole o firebaseConfig do seu projeto."); return; }
-    try {
-      const cfg = JSON.parse(txt);
-      conectarFirebase(cfg, false);
-      document.getElementById("modalFirebase").classList.remove("open");
-    } catch (e) { alert("JSON inválido. Confira o formato do firebaseConfig."); }
-  });
-  document.getElementById("btnRemoveFirebase").addEventListener("click", () => {
-    localStorage.removeItem(FB_CONFIG_KEY);
-    FB_CFG_ATIVA = null;
-    document.getElementById("modalFirebase").classList.remove("open");
-    conectarFirebase(DEFAULT_FIREBASE_CONFIG, true);
-  });
+  const modal = document.getElementById("modalFirebase");
+  if (modal) {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) modal.style.display = "none";
+    });
+    const btnFechar = document.getElementById("btnFecharFirebase");
+    if (btnFechar) btnFechar.addEventListener("click", () => { modal.style.display = "none"; });
 
-  document.getElementById("btnExportPdf").addEventListener("click", exportarPdfMapaDeNotas);
-  document.getElementById("btnSair").addEventListener("click", () => {
-    if (confirm("Sair do diário? Você vai precisar digitar usuário e senha de novo.")) sair();
-  });
+    const btnSalvar = document.getElementById("btnSalvarFirebase");
+    if (btnSalvar) {
+      btnSalvar.addEventListener("click", () => {
+        try {
+          const cfg = JSON.parse(document.getElementById("fbConfigInput").value);
+          localStorage.setItem(FB_CONFIG_KEY, JSON.stringify(cfg));
+          modal.style.display = "none";
+          conectarFirebase(cfg, false);
+        } catch (e) {
+          alert("Configuração inválida. Verifique o JSON.");
+        }
+      });
+    }
+
+    const btnRemover = document.getElementById("btnRemoverFirebase");
+    if (btnRemover) {
+      btnRemover.addEventListener("click", () => {
+        localStorage.removeItem(FB_CONFIG_KEY);
+        modal.style.display = "none";
+        conectarFirebase(DEFAULT_FIREBASE_CONFIG, false);
+      });
+    }
+  }
+
+  const btnPdf = document.getElementById("btnExportPdf");
+  if (btnPdf) btnPdf.addEventListener("click", exportarPdfMapaDeNotas);
+
+  const btnSair = document.getElementById("btnSair");
+  if (btnSair) {
+    btnSair.addEventListener("click", () => {
+      if (confirm("Deseja realmente sair?")) sair();
+    });
+  }
 }
 
 function renderAll() {
+  const main = document.getElementById("mainContent");
+  if (!main) return;
   if (ABA_ATUAL === "presenca") renderPresenca();
   else if (ABA_ATUAL === "extra") renderPontoExtra();
   else if (ABA_ATUAL === "notas") renderNotas();
   else if (ABA_ATUAL === "mapa") renderMapaDeNotas();
 }
 
-/* ======================= ABA: PRESENÇA ======================= */
 function todasDatasDaTurma(t) {
   const set = new Set();
   t.alunos.forEach((a) => Object.keys(a.presencas || {}).forEach((d) => set.add(d)));
   return Array.from(set).sort();
 }
 
+function formatarDataCurta(iso) {
+  const [y, m, d] = iso.split("-");
+  return `${d}/${m}`;
+}
+
 function renderPresenca() {
   const t = turmaAtual();
-  const datas = todasDatasDaTurma(t);
   const main = document.getElementById("mainContent");
+  const hoje = new Date().toISOString().slice(0, 10);
+  const datas = todasDatasDaTurma(t);
 
-  let html = `<div class="card">
-    <span class="eyebrow">Gestão da turma</span>
-    <h2>${t.nome} — Alunos matriculados</h2>
-    <p class="sub">Adicione ou remova alunos. A lista é reordenada em ordem alfabética e renumerada automaticamente.</p>
-    <div class="toolbar no-print">
-      <label style="flex:1;min-width:220px;">Nome do(a) novo(a) aluno(a):
-        <input type="text" id="novoAlunoInput" class="wide" style="width:100%;max-width:360px;margin-left:6px;" placeholder="Ex.: JOÃO DA SILVA">
-      </label>
-      <button class="btn btn-green" id="btnAddAluno">+ Adicionar aluno(a)</button>
+  main.innerHTML = `
+    <div class="card">
+      <h3>Gestão da turma</h3>
+      <div class="row-add">
+        <input type="text" id="novoAlunoInput" placeholder="Nome completo do(a) aluno(a)" />
+        <button id="btnAddAluno" class="btn btn-primary">Adicionar aluno(a)</button>
+      </div>
     </div>
-  </div>
-
-  <div class="card">
-    <span class="eyebrow">Registro de presença</span>
-    <h2>${t.nome} — Lista de chamada</h2>
-    <p class="sub">Clique em uma célula para alternar entre Presente (P) e Falta (F). Adicione uma nova data abaixo.</p>
-    <div class="toolbar no-print">
-      <label>Nova data: <input type="date" id="novaDataInput"></label>
-      <button class="btn btn-red" id="btnAddData">+ Adicionar data</button>
+    <div class="card">
+      <h3>Presença — ${t.nome}</h3>
+      <div class="row-add">
+        <input type="date" id="dataChamada" value="${hoje}" />
+        <button id="btnNovaData" class="btn btn-primary">Registrar data</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nº</th><th>Nome</th>
+              ${datas.map((d) => `<th>${formatarDataCurta(d)}</th>`).join("")}
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${t.alunos.map((a) => `
+              <tr>
+                <td>${a.num}</td>
+                <td class="nome-col">${escapeHtml(a.nome)}</td>
+                ${datas.map((d) => {
+                  const v = a.presencas[d] || "P";
+                  const cls = v === "F" ? "falta" : "presente";
+                  return `<td><button class="chip ${cls}" data-presenca data-num="${a.num}" data-data="${d}">${v}</button></td>`;
+                }).join("")}
+                <td class="acoes-col">
+                  <button class="icon-btn" data-obs data-num="${a.num}" title="Observações">${a.observacoes ? "📝•" : "📝"}</button>
+                  <button class="icon-btn danger" data-remover data-num="${a.num}" title="Remover aluno(a)">✕</button>
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
     </div>
-    <div style="overflow-x:auto;">
-    <table class="grid">
-      <thead><tr><th>Nº</th><th style="text-align:left">Aluno(a)</th><th class="no-print">Ações</th>`;
-  datas.forEach((d) => {
-    html += `<th><span class="datechip">${formatarDataCurta(d)}<button data-del-data="${d}" class="no-print" title="Remover data">×</button></span></th>`;
-  });
-  html += `</tr></thead><tbody>`;
-
-  t.alunos.forEach((a) => {
-    const temObs = a.observacoes && a.observacoes.trim().length > 0;
-    html += `<tr><td class="numcol">${a.num}</td><td class="nome">${a.nome}</td>`;
-    html += `<td class="no-print" style="white-space:nowrap;">
-      <button class="small-btn" data-obs-aluno="${a.num}" title="Observações">${temObs ? "📝•" : "📝"}</button>
-      <button class="small-btn del" data-remove-aluno="${a.num}" title="Remover aluno(a)">✕</button>
-    </td>`;
-    datas.forEach((d) => {
-      const v = a.presencas[d] === "F" ? "F" : "P";
-      html += `<td class="pres-cell ${v}" data-aluno="${a.num}" data-data="${d}">${v}</td>`;
-    });
-    html += `</tr>`;
-  });
-  html += `</tbody></table></div>`;
-
-  if (datas.length) {
-    html += `<div class="stat-strip" style="margin-top:16px;">`;
-    t.alunos.forEach((a) => {
-      const faltas = datas.reduce((acc, d) => acc + (a.presencas[d] === "F" ? 1 : 0), 0);
-      if (faltas > 0) html += `<div class="stat"><div class="n">${faltas}</div><div class="l">Faltas — ${a.nome.split(" ")[0]}</div></div>`;
-    });
-    html += `</div>`;
-  }
-  html += `</div>`;
-  main.innerHTML = html;
+  `;
 
   document.getElementById("btnAddAluno").addEventListener("click", () => {
     const input = document.getElementById("novoAlunoInput");
-    if (!input.value.trim()) { alert("Digite o nome do(a) aluno(a)."); return; }
-    adicionarAlunoTurma(t, input.value);
-    agendarSalvamento();
-    renderPresenca();
-  });
-  const novoAlunoInput = document.getElementById("novoAlunoInput");
-  if (novoAlunoInput) {
-    novoAlunoInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") document.getElementById("btnAddAluno").click();
-    });
-  }
-
-  main.querySelectorAll("[data-remove-aluno]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const num = Number(btn.dataset.removeAluno);
-      const aluno = t.alunos.find((a) => a.num === num);
-      if (!aluno) return;
-      if (!confirm("Remover " + aluno.nome + " da turma? Todas as notas, presenças e observações desse(a) aluno(a) serão apagadas.")) return;
-      removerAlunoTurma(t, num);
+    if (adicionarAlunoTurma(t, input.value)) {
       agendarSalvamento();
-      renderTurmaSelect();
       renderPresenca();
-    });
+    }
+  });
+  document.getElementById("novoAlunoInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); document.getElementById("btnAddAluno").click(); }
   });
 
-  main.querySelectorAll("[data-obs-aluno]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const num = Number(btn.dataset.obsAluno);
-      abrirModalObservacoes(t, num);
-    });
-  });
-
-  document.getElementById("btnAddData").addEventListener("click", () => {
-    const input = document.getElementById("novaDataInput");
-    if (!input.value) { alert("Escolha uma data."); return; }
-    t.alunos.forEach((a) => { if (!(input.value in a.presencas)) a.presencas[input.value] = "P"; });
+  document.getElementById("btnNovaData").addEventListener("click", () => {
+    const d = document.getElementById("dataChamada").value;
+    if (!d) return;
+    t.alunos.forEach((a) => { if (!(d in a.presencas)) a.presencas[d] = "P"; });
     agendarSalvamento();
     renderPresenca();
   });
 
-  main.querySelectorAll("[data-del-data]").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const d = btn.dataset.delData;
-      if (!confirm("Remover a coluna do dia " + formatarDataCurta(d) + " para toda a turma?")) return;
-      t.alunos.forEach((a) => delete a.presencas[d]);
+  main.querySelectorAll("[data-presenca]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const num = Number(btn.dataset.num);
+      const data = btn.dataset.data;
+      const aluno = t.alunos.find((a) => a.num === num);
+      aluno.presencas[data] = aluno.presencas[data] === "F" ? "P" : "F";
+      const novoV = aluno.presencas[data];
+      btn.textContent = novoV;
+      btn.className = "chip " + (novoV === "F" ? "falta" : "presente");
       agendarSalvamento();
-      renderPresenca();
     });
   });
 
-  main.querySelectorAll(".pres-cell").forEach((cell) => {
-    cell.addEventListener("click", () => {
-      const num = Number(cell.dataset.aluno);
-      const data = cell.dataset.data;
+  main.querySelectorAll("[data-obs]").forEach((btn) => {
+    btn.addEventListener("click", () => abrirModalObservacoes(t, Number(btn.dataset.num)));
+  });
+
+  main.querySelectorAll("[data-remover]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const num = Number(btn.dataset.num);
       const aluno = t.alunos.find((a) => a.num === num);
-      const atual = aluno.presencas[data] || "P";
-      const prox = atual === "P" ? "F" : "P";
-      aluno.presencas[data] = prox;
-      agendarSalvamento();
-      renderPresenca();
+      if (aluno && confirm(`Remover ${aluno.nome} da turma?`)) {
+        removerAlunoTurma(t, num);
+        agendarSalvamento();
+        renderPresenca();
+      }
     });
   });
 }
 
-/* ======================= MODAL: OBSERVAÇÕES ======================= */
 function abrirModalObservacoes(t, num) {
   const aluno = t.alunos.find((a) => a.num === num);
   if (!aluno) return;
   let overlay = document.getElementById("modalObsOverlay");
   if (overlay) overlay.remove();
   overlay = document.createElement("div");
-  overlay.className = "modal-bg open";
   overlay.id = "modalObsOverlay";
+  overlay.className = "modal-overlay";
+  overlay.style.display = "flex";
   overlay.innerHTML = `
     <div class="modal">
-      <h3>Observações — ${aluno.num}. ${aluno.nome}</h3>
-      <p class="hint">Anotações livres sobre o(a) aluno(a): comportamento, necessidades específicas, combinados com a família etc. Fica salvo junto com o restante dos dados da turma.</p>
-      <textarea id="obsTextarea" style="min-height:160px;">${escapeHtml(aluno.observacoes || "")}</textarea>
-      <div class="row">
-        <button class="btn btn-outline" id="btnCloseObs" style="color:#22304A;border-color:#22304A">Cancelar</button>
-        <button class="btn btn-green" id="btnSaveObs">Salvar</button>
+      <h3>Observações — ${escapeHtml(aluno.nome)}</h3>
+      <textarea id="obsTextarea" rows="6" style="width:100%;">${escapeHtml(aluno.observacoes || "")}</textarea>
+      <div class="modal-actions">
+        <button id="btnCancelarObs" class="btn">Cancelar</button>
+        <button id="btnSalvarObs" class="btn btn-primary">Salvar</button>
       </div>
-    </div>`;
+    </div>
+  `;
   document.body.appendChild(overlay);
-  document.getElementById("btnCloseObs").addEventListener("click", () => overlay.remove());
   overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
-  document.getElementById("btnSaveObs").addEventListener("click", () => {
+  document.getElementById("btnCancelarObs").addEventListener("click", () => overlay.remove());
+  document.getElementById("btnSalvarObs").addEventListener("click", () => {
     aluno.observacoes = document.getElementById("obsTextarea").value;
     agendarSalvamento();
     overlay.remove();
-    renderAll();
+    renderPresenca();
   });
 }
 
-function formatarDataCurta(iso) {
-  const [y, m, d] = iso.split("-");
-  return d + "/" + m;
-}
-
-/* ======================= ABA: PONTO EXTRA ======================= */
-function renderPontoExtra() {
-  const t = turmaAtual();
-  const main = document.getElementById("mainContent");
-  let html = `<div class="card">
-    <span class="eyebrow">Atividades complementares</span>
-    <h2>${t.nome} — Ponto extra por bimestre</h2>
-    <p class="sub">Some ou retire pontos por bimestre (participação, projetos, tarefas bônus, penalidades). Escolha "+" para somar e "−" para descontar da média.</p>`;
-
-  t.alunos.forEach((a) => {
-    html += `<div style="border-top:1px solid var(--line); padding-top:12px; margin-top:12px;">
-      <strong>${a.num}. ${a.nome}</strong>
-      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; margin-top:10px;">`;
-    ["b1", "b2", "b3", "b4"].forEach((bim) => {
-      const total = somaPontosExtra(a, bim);
-      const totalTxt = (total >= 0 ? "+" : "") + total.toFixed(2);
-      html += `<div>
-        <div class="sub" style="margin-bottom:6px;">${rotuloBimestre(bim)} <span class="mono" style="color:${total < 0 ? "var(--red)" : "var(--green)"};font-weight:600;">(total: ${totalTxt})</span></div>
-        <div data-extra-list="${a.num}|${bim}">`;
-      (a.pontosExtra[bim] || []).forEach((p, idx) => {
-        const tipo = p.tipo === "sub" ? "sub" : "add";
-        html += `<div class="extra-row">
-          <select data-extra-tipo="${a.num}|${bim}|${idx}" style="border:1px solid var(--line);border-radius:6px;padding:6px 4px;font-weight:700;color:${tipo === "sub" ? "var(--red)" : "var(--green)"};">
-            <option value="add" ${tipo === "add" ? "selected" : ""}>+</option>
-            <option value="sub" ${tipo === "sub" ? "selected" : ""}>−</option>
-          </select>
-          <input type="text" placeholder="Descrição" value="${escapeHtml(p.desc)}" data-extra-desc="${a.num}|${bim}|${idx}">
-          <input type="number" step="0.1" min="0" inputmode="decimal" value="${Math.abs(Number(p.valor) || 0)}" data-extra-valor="${a.num}|${bim}|${idx}" onfocus="this.select()">
-          <button class="small-btn del" data-extra-del="${a.num}|${bim}|${idx}">Remover</button>
-        </div>`;
-      });
-      html += `</div>
-        <button class="small-btn" data-extra-add="${a.num}|${bim}">+ Novo lançamento</button>
-      </div>`;
-    });
-    html += `</div></div>`;
-  });
-  html += `</div>`;
-  main.innerHTML = html;
-
-  main.querySelectorAll("[data-extra-add]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const [num, bim] = btn.dataset.extraAdd.split("|");
-      const a = t.alunos.find((x) => x.num === Number(num));
-      a.pontosExtra[bim].push({ desc: "", valor: 0, tipo: "add" });
-      agendarSalvamento();
-      renderPontoExtra();
-    });
-  });
-  main.querySelectorAll("[data-extra-del]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const [num, bim, idx] = btn.dataset.extraDel.split("|");
-      const a = t.alunos.find((x) => x.num === Number(num));
-      a.pontosExtra[bim].splice(Number(idx), 1);
-      agendarSalvamento();
-      renderPontoExtra();
-    });
-  });
-  main.querySelectorAll("[data-extra-desc]").forEach((inp) => {
-    inp.addEventListener("input", () => {
-      const [num, bim, idx] = inp.dataset.extraDesc.split("|");
-      const a = t.alunos.find((x) => x.num === Number(num));
-      a.pontosExtra[bim][Number(idx)].desc = inp.value;
-      agendarSalvamento();
-    });
-  });
-  main.querySelectorAll("[data-extra-valor]").forEach((inp) => {
-    inp.addEventListener("input", () => {
-      const [num, bim, idx] = inp.dataset.extraValor.split("|");
-      const a = t.alunos.find((x) => x.num === Number(num));
-      a.pontosExtra[bim][Number(idx)].valor = Math.abs(Number(inp.value) || 0);
-      agendarSalvamento();
-      renderPontoExtra();
-    });
-  });
-  main.querySelectorAll("[data-extra-tipo]").forEach((sel) => {
-    sel.addEventListener("change", () => {
-      const [num, bim, idx] = sel.dataset.extraTipo.split("|");
-      const a = t.alunos.find((x) => x.num === Number(num));
-      a.pontosExtra[bim][Number(idx)].tipo = sel.value;
-      agendarSalvamento();
-      renderPontoExtra();
-    });
-  });
-}
-
-function rotuloBimestre(bim) {
-  return { b1: "1º Bimestre", b2: "2º Bimestre", b3: "3º Bimestre", b4: "4º Bimestre" }[bim];
-}
 function escapeHtml(s) {
   return String(s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
-/* ======================= ABA: NOTAS ======================= */
+function parseDecimal(v) {
+  const n = Number(String(v).trim().replace(",", "."));
+  return isNaN(n) ? 0 : n;
+}
+
+function rotuloBimestre(bim) {
+  return { b1: "1º Bimestre", b2: "2º Bimestre", b3: "3º Bimestre", b4: "4º Bimestre" }[bim] || bim;
+}
+
+function renderPontoExtra() {
+  const t = turmaAtual();
+  const main = document.getElementById("mainContent");
+  const bims = ["b1", "b2", "b3", "b4"];
+
+  main.innerHTML = `
+    <div class="card">
+      <h3>Ponto Extra — ${t.nome}</h3>
+      ${t.alunos.map((a) => `
+        <div class="aluno-extra-block">
+          <h4>${a.num}. ${escapeHtml(a.nome)}</h4>
+          <div class="extra-bimestres">
+            ${bims.map((bim) => `
+              <div class="extra-bim">
+                <strong>${rotuloBimestre(bim)}</strong>
+                <div class="extra-lista" data-lista="${a.num}-${bim}">
+                  ${(a.pontosExtra[bim] || []).map((p, i) => `
+                    <div class="extra-item">
+                      <select data-extra-tipo data-num="${a.num}" data-bim="${bim}" data-idx="${i}" class="${p.tipo === 'sub' ? 'sub' : 'add'}">
+                        <option value="add" ${p.tipo !== 'sub' ? 'selected' : ''}>+</option>
+                        <option value="sub" ${p.tipo === 'sub' ? 'selected' : ''}>−</option>
+                      </select>
+                      <input type="text" data-extra-desc data-num="${a.num}" data-bim="${bim}" data-idx="${i}" value="${escapeHtml(p.desc || '')}" placeholder="Descrição" />
+                      <input type="text" data-extra-valor data-num="${a.num}" data-bim="${bim}" data-idx="${i}" value="${p.valor}" onfocus="this.select()" onkeypress="return /[0-9,.\\-]/.test(event.key)" />
+                      <button class="icon-btn danger" data-extra-remover data-num="${a.num}" data-bim="${bim}" data-idx="${i}">✕</button>
+                    </div>
+                  `).join("")}
+                </div>
+                <button class="btn btn-sm" data-extra-add data-num="${a.num}" data-bim="${bim}">+ adicionar</button>
+                <div class="extra-total" id="extra-total-${a.num}-${bim}">Total: ${somaPontosExtra(a, bim).toFixed(2)}</div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  main.querySelectorAll("[data-extra-add]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const num = Number(btn.dataset.num), bim = btn.dataset.bim;
+      const aluno = t.alunos.find((a) => a.num === num);
+      aluno.pontosExtra[bim].push({ tipo: "add", desc: "", valor: 0 });
+      agendarSalvamento();
+      renderPontoExtra();
+    });
+  });
+
+  main.querySelectorAll("[data-extra-remover]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const num = Number(btn.dataset.num), bim = btn.dataset.bim, idx = Number(btn.dataset.idx);
+      const aluno = t.alunos.find((a) => a.num === num);
+      aluno.pontosExtra[bim].splice(idx, 1);
+      agendarSalvamento();
+      renderPontoExtra();
+    });
+  });
+
+  main.querySelectorAll("[data-extra-tipo]").forEach((sel) => {
+    sel.addEventListener("change", () => {
+      const num = Number(sel.dataset.num), bim = sel.dataset.bim, idx = Number(sel.dataset.idx);
+      const aluno = t.alunos.find((a) => a.num === num);
+      aluno.pontosExtra[bim][idx].tipo = sel.value;
+      sel.className = sel.value === "sub" ? "sub" : "add";
+      agendarSalvamento();
+      atualizarTotalExtra(t, num, bim);
+    });
+  });
+
+  main.querySelectorAll("[data-extra-desc]").forEach((inp) => {
+    inp.addEventListener("input", () => {
+      const num = Number(inp.dataset.num), bim = inp.dataset.bim, idx = Number(inp.dataset.idx);
+      const aluno = t.alunos.find((a) => a.num === num);
+      aluno.pontosExtra[bim][idx].desc = inp.value;
+      agendarSalvamento();
+    });
+  });
+
+  main.querySelectorAll("[data-extra-valor]").forEach((inp) => {
+    inp.addEventListener("input", () => {
+      const num = Number(inp.dataset.num), bim = inp.dataset.bim, idx = Number(inp.dataset.idx);
+      const aluno = t.alunos.find((a) => a.num === num);
+      aluno.pontosExtra[bim][idx].valor = parseDecimal(inp.value);
+      agendarSalvamento();
+      atualizarTotalExtra(t, num, bim);
+    });
+  });
+}
+
+function atualizarTotalExtra(t, num, bim) {
+  const aluno = t.alunos.find((a) => a.num === num);
+  const el = document.getElementById(`extra-total-${num}-${bim}`);
+  if (el) el.textContent = "Total: " + somaPontosExtra(aluno, bim).toFixed(2);
+}
+
 function renderNotas() {
   const t = turmaAtual();
   const main = document.getElementById("mainContent");
-  let html = `<div class="card">
-    <span class="eyebrow">Lançamento de notas</span>
-    <h2>${t.nome} — Notas por bimestre</h2>
-    <p class="sub">Teste, trabalho e prova compõem a média do bimestre (pesos 3 / 1 / 6). Digite o valor direto no campo — os totais atualizam automaticamente. A nota de recuperação, quando preenchida, substitui a média do 2º e do 4º bimestre.</p>
-    <div style="overflow-x:auto;">
-    <table class="grid">
-      <thead><tr>
-        <th rowspan="2">Nº</th><th rowspan="2" style="text-align:left">Aluno(a)</th>
-        ${["1º Bim", "2º Bim", "3º Bim", "4º Bim"].map((r) => `<th colspan="4">${r}</th>`).join("")}
-        <th rowspan="2">Final</th><th rowspan="2">Situação</th>
-      </tr>
-      <tr>
-        ${["b1", "b2", "b3", "b4"].map((bim) => `
-          <th>Teste</th><th>Trab.</th><th>Prova</th><th>${bim === "b2" || bim === "b4" ? "Recup." : "Média"}</th>
-        `).join("")}
-      </tr></thead><tbody>`;
+  const bims = ["b1", "b2", "b3", "b4"];
 
-  t.alunos.forEach((a) => {
-    html += `<tr><td class="numcol">${a.num}</td><td class="nome">${a.nome}</td>`;
-    ["b1", "b2", "b3", "b4"].forEach((bim) => {
-      const n = a.notas[bim];
-      html += `<td><input type="number" min="0" max="10" step="0.1" inputmode="decimal" value="${n.teste}" data-nota="${a.num}|${bim}|teste" onfocus="this.select()"></td>`;
-      html += `<td><input type="number" min="0" max="10" step="0.1" inputmode="decimal" value="${n.trabalho}" data-nota="${a.num}|${bim}|trabalho" onfocus="this.select()"></td>`;
-      html += `<td><input type="number" min="0" max="10" step="0.1" inputmode="decimal" value="${n.prova}" data-nota="${a.num}|${bim}|prova" onfocus="this.select()"></td>`;
-      if (bim === "b2" || bim === "b4") {
-        const rec = a.recuperacao[bim];
-        html += `<td><input type="number" min="0" max="10" step="0.1" inputmode="decimal" id="recup-${a.num}-${bim}" value="${rec === null || rec === undefined ? "" : rec}" placeholder="${mediaBimestreBruta(a, bim).toFixed(1)}" data-recup="${a.num}|${bim}" onfocus="this.select()"></td>`;
-      } else {
-        html += `<td class="mono" id="media-${a.num}-${bim}">${mediaBimestreBruta(a, bim).toFixed(1)}</td>`;
-      }
-    });
-    const final = mediaFinalAno(a);
-    const status = statusAluno(a);
-    html += `<td class="mono" style="font-weight:700;" id="final-${a.num}">${final.toFixed(1)}</td>`;
-    html += `<td id="status-${a.num}"><span class="badge ${status === "Aprovado" ? "aprovado" : "recuperacao"}">${status}</span></td>`;
-    html += `</tr>`;
-  });
-  html += `</tbody></table></div></div>`;
-  main.innerHTML = html;
+  main.innerHTML = `
+    <div class="card">
+      <h3>Notas — ${t.nome}</h3>
+      <p class="hint">Pesos: Teste x3, Trabalho x1, Prova x6 (soma 10). Recuperação substitui a média do 2º e 4º bimestre. Use vírgula ou ponto para casas decimais (ex: 0,5).</p>
+      <div class="table-wrap">
+        <table class="tabela-notas">
+          <thead>
+            <tr>
+              <th rowspan="2">Nº</th><th rowspan="2">Nome</th>
+              ${bims.map((bim) => `<th colspan="${bim === 'b2' || bim === 'b4' ? 5 : 4}">${rotuloBimestre(bim)}</th>`).join("")}
+              <th rowspan="2">Final</th><th rowspan="2">Status</th>
+            </tr>
+            <tr>
+              ${bims.map((bim) => `
+                <th>Teste</th><th>Trabalho</th><th>Prova</th><th>Média</th>
+                ${bim === 'b2' || bim === 'b4' ? '<th>Recup.</th>' : ''}
+              `).join("")}
+            </tr>
+          </thead>
+          <tbody>
+            ${t.alunos.map((a) => `
+              <tr id="linha-${a.num}">
+                <td>${a.num}</td>
+                <td class="nome-col">${escapeHtml(a.nome)}</td>
+                ${bims.map((bim) => `
+                  <td><input type="text" data-nota data-num="${a.num}" data-bim="${bim}" data-campo="teste" value="${a.notas[bim].teste}" onfocus="this.select()" onkeypress="return /[0-9,.\\-]/.test(event.key)" /></td>
+                  <td><input type="text" data-nota data-num="${a.num}" data-bim="${bim}" data-campo="trabalho" value="${a.notas[bim].trabalho}" onfocus="this.select()" onkeypress="return /[0-9,.\\-]/.test(event.key)" /></td>
+                  <td><input type="text" data-nota data-num="${a.num}" data-bim="${bim}" data-campo="prova" value="${a.notas[bim].prova}" onfocus="this.select()" onkeypress="return /[0-9,.\\-]/.test(event.key)" /></td>
+                  <td id="media-${a.num}-${bim}">${mediaBimestreBruta(a, bim).toFixed(2)}</td>
+                  ${bim === 'b2' || bim === 'b4' ? `<td><input type="text" data-recup data-num="${a.num}" data-bim="${bim}" value="${a.recuperacao[bim] ?? ''}" placeholder="${mediaBimestreBruta(a, bim).toFixed(2)}" onfocus="this.select()" onkeypress="return /[0-9,.\\-]/.test(event.key)" id="recup-${a.num}-${bim}" /></td>` : ''}
+                `).join("")}
+                <td id="final-${a.num}"><strong>${mediaFinalAno(a).toFixed(2)}</strong></td>
+                <td id="status-${a.num}">${badgeStatus(a)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
 
   main.querySelectorAll("[data-nota]").forEach((inp) => {
     inp.addEventListener("input", () => {
-      const [num, bim, campo] = inp.dataset.nota.split("|");
-      const a = t.alunos.find((x) => x.num === Number(num));
-      a.notas[bim][campo] = Number(inp.value);
+      const num = Number(inp.dataset.num), bim = inp.dataset.bim, campo = inp.dataset.campo;
+      const aluno = t.alunos.find((a) => a.num === num);
+      aluno.notas[bim][campo] = parseDecimal(inp.value);
       agendarSalvamento();
-      atualizarLinhaNotas(t, Number(num));
+      atualizarLinhaNotas(t, num);
     });
   });
+
   main.querySelectorAll("[data-recup]").forEach((inp) => {
     inp.addEventListener("input", () => {
-      const [num, bim] = inp.dataset.recup.split("|");
-      const a = t.alunos.find((x) => x.num === Number(num));
-      a.recuperacao[bim] = inp.value === "" ? null : Number(inp.value);
+      const num = Number(inp.dataset.num), bim = inp.dataset.bim;
+      const aluno = t.alunos.find((a) => a.num === num);
+      aluno.recuperacao[bim] = inp.value === "" ? null : parseDecimal(inp.value);
       agendarSalvamento();
-      atualizarLinhaNotas(t, Number(num));
+      atualizarLinhaNotas(t, num);
     });
   });
 }
 
-// Atualiza só os valores calculados de uma linha (média, final, situação) sem
-// redesenhar a tabela inteira — assim os campos de nota não perdem o foco ao digitar.
-function atualizarLinhaNotas(t, num) {
-  const a = t.alunos.find((x) => x.num === num);
-  if (!a) return;
-  ["b1", "b3"].forEach((bim) => {
-    const el = document.getElementById("media-" + num + "-" + bim);
-    if (el) el.textContent = mediaBimestreBruta(a, bim).toFixed(1);
-  });
-  ["b2", "b4"].forEach((bim) => {
-    const inp = document.getElementById("recup-" + num + "-" + bim);
-    if (inp) inp.placeholder = mediaBimestreBruta(a, bim).toFixed(1);
-  });
-  const finalEl = document.getElementById("final-" + num);
-  if (finalEl) finalEl.textContent = mediaFinalAno(a).toFixed(1);
-  const statusEl = document.getElementById("status-" + num);
-  if (statusEl) {
-    const status = statusAluno(a);
-    statusEl.innerHTML = `<span class="badge ${status === "Aprovado" ? "aprovado" : "recuperacao"}">${status}</span>`;
-  }
+function badgeStatus(a) {
+  const aprovado = statusAluno(a) === "Aprovado";
+  return `<span class="badge ${aprovado ? 'badge-ok' : 'badge-warn'}">${statusAluno(a)}</span>`;
 }
 
-/* ======================= ABA: MAPA DE NOTAS ======================= */
+function atualizarLinhaNotas(t, num) {
+  const aluno = t.alunos.find((a) => a.num === num);
+  ["b1", "b2", "b3", "b4"].forEach((bim) => {
+    const el = document.getElementById(`media-${num}-${bim}`);
+    if (el) el.textContent = mediaBimestreBruta(aluno, bim).toFixed(2);
+    const recupEl = document.getElementById(`recup-${num}-${bim}`);
+    if (recupEl) recupEl.placeholder = mediaBimestreBruta(aluno, bim).toFixed(2);
+  });
+  const finalEl = document.getElementById(`final-${num}`);
+  if (finalEl) finalEl.innerHTML = `<strong>${mediaFinalAno(aluno).toFixed(2)}</strong>`;
+  const statusEl = document.getElementById(`status-${num}`);
+  if (statusEl) statusEl.innerHTML = badgeStatus(aluno);
+}
+
 function renderMapaDeNotas() {
   const t = turmaAtual();
   const main = document.getElementById("mainContent");
   const aprovados = t.alunos.filter((a) => statusAluno(a) === "Aprovado").length;
-  let html = `<div class="card">
-    <span class="eyebrow">Fechamento do ano letivo</span>
-    <h2>${t.nome} — Mapa de notas</h2>
-    <p class="sub">Resumo consolidado para impressão/PDF, no mesmo padrão do diário de classe físico.</p>
-    <div class="stat-strip">
-      <div class="stat"><div class="n">${t.alunos.length}</div><div class="l">Alunos</div></div>
-      <div class="stat"><div class="n">${aprovados}</div><div class="l">Aprovados</div></div>
-      <div class="stat"><div class="n">${t.alunos.length - aprovados}</div><div class="l">Em recuperação</div></div>
+  const total = t.alunos.length;
+
+  main.innerHTML = `
+    <div class="card">
+      <h3>Mapa de Notas — ${t.nome}</h3>
+      <div class="stat-strip">
+        <div class="stat"><span class="stat-num">${total}</span><span class="stat-label">Alunos</span></div>
+        <div class="stat"><span class="stat-num">${aprovados}</span><span class="stat-label">Aprovados</span></div>
+        <div class="stat"><span class="stat-num">${total - aprovados}</span><span class="stat-label">Em recuperação</span></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Nº</th><th>Nome</th><th>1º Bim</th><th>2º Bim</th><th>3º Bim</th><th>4º Bim</th><th>Final</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            ${t.alunos.map((a) => `
+              <tr>
+                <td>${a.num}</td>
+                <td class="nome-col">${escapeHtml(a.nome)}</td>
+                <td>${mediaBimestreFinal(a, 'b1').toFixed(2)}</td>
+                <td>${mediaBimestreFinal(a, 'b2').toFixed(2)}</td>
+                <td>${mediaBimestreFinal(a, 'b3').toFixed(2)}</td>
+                <td>${mediaBimestreFinal(a, 'b4').toFixed(2)}</td>
+                <td><strong>${mediaFinalAno(a).toFixed(2)}</strong></td>
+                <td>${badgeStatus(a)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
     </div>
-    <div style="overflow-x:auto;">
-    <table class="grid" id="mapaTable">
-      <thead><tr>
-        <th>Nº</th><th style="text-align:left">Aluno(a)</th>
-        <th>1º Bim</th><th>2º Bim</th><th>3º Bim</th><th>4º Bim</th><th>Média Final</th><th>Situação</th>
-      </tr></thead><tbody>`;
-  t.alunos.forEach((a) => {
-    const b1 = mediaBimestreFinal(a, "b1"), b2 = mediaBimestreFinal(a, "b2"),
-          b3 = mediaBimestreFinal(a, "b3"), b4 = mediaBimestreFinal(a, "b4");
-    const final = mediaFinalAno(a), status = statusAluno(a);
-    html += `<tr>
-      <td class="numcol">${a.num}</td><td class="nome">${a.nome}</td>
-      <td class="mono">${b1.toFixed(1)}</td><td class="mono">${b2.toFixed(1)}</td>
-      <td class="mono">${b3.toFixed(1)}</td><td class="mono">${b4.toFixed(1)}</td>
-      <td class="mono" style="font-weight:700;">${final.toFixed(1)}</td>
-      <td><span class="badge ${status === "Aprovado" ? "aprovado" : "recuperacao"}">${status}</span></td>
-    </tr>`;
-  });
-  html += `</tbody></table></div></div>`;
-  main.innerHTML = html;
+  `;
 }
 
-/* ======================= EXPORTAÇÃO PDF ======================= */
 function exportarPdfMapaDeNotas() {
   const t = turmaAtual();
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
 
-  doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
-  doc.text("Instituto de Educação Silva Nascimento", 40, 40);
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "normal");
-  doc.text("Mapa de Notas — " + t.nome + " — Ano letivo de 2026 — Prof. Glaucio Rafael", 40, 58);
+  doc.text(`Mapa de Notas — ${t.nome} (2026)`, 14, 12);
+  doc.setFontSize(10);
+  doc.text("Instituto de Educação Silva Nascimento — Prof. Glaucio Rafael", 14, 18);
 
-  const linhas = t.alunos.map((a) => {
-    const b1 = mediaBimestreFinal(a, "b1"), b2 = mediaBimestreFinal(a, "b2"),
-          b3 = mediaBimestreFinal(a, "b3"), b4 = mediaBimestreFinal(a, "b4");
-    const final = mediaFinalAno(a), status = statusAluno(a);
-    return [a.num, a.nome, b1.toFixed(1), b2.toFixed(1), b3.toFixed(1), b4.toFixed(1), final.toFixed(1), status];
-  });
+  const rows = t.alunos.map((a) => [
+    a.num, a.nome,
+    mediaBimestreFinal(a, "b1").toFixed(2),
+    mediaBimestreFinal(a, "b2").toFixed(2),
+    mediaBimestreFinal(a, "b3").toFixed(2),
+    mediaBimestreFinal(a, "b4").toFixed(2),
+    mediaFinalAno(a).toFixed(2),
+    statusAluno(a)
+  ]);
 
   doc.autoTable({
-    startY: 74,
-    head: [["Nº", "Aluno(a)", "1º Bim", "2º Bim", "3º Bim", "4º Bim", "Média Final", "Situação"]],
-    body: linhas,
-    styles: { font: "helvetica", fontSize: 9, cellPadding: 5 },
-    headStyles: { fillColor: [34, 48, 74], textColor: 255 },
-    columnStyles: { 1: { cellWidth: 220 } },
-    didParseCell: function (data) {
+    startY: 24,
+    head: [["Nº", "Nome", "1º Bim", "2º Bim", "3º Bim", "4º Bim", "Final", "Status"]],
+    body: rows,
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [122, 20, 30] },
+    didParseCell: (data) => {
       if (data.section === "body" && data.column.index === 7) {
-        data.cell.styles.textColor = data.cell.raw === "Aprovado" ? [63, 125, 88] : [166, 50, 63];
-        data.cell.styles.fontStyle = "bold";
+        if (data.cell.raw === "Aprovado") data.cell.styles.textColor = [46, 125, 50];
+        else data.cell.styles.textColor = [179, 38, 30];
       }
     }
   });
 
-  doc.save("Mapa_de_Notas_" + t.nome.replace(/\s+/g, "_") + "_2026.pdf");
+  doc.save(`Mapa_de_Notas_${t.nome.replace(/\s+/g, "_")}_2026.pdf`);
 }
 
-/* ======================= START ======================= */
 iniciarLogin();
-
 </script>
 </body>
 </html>
