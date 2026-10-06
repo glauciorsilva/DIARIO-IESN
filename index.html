@@ -4,6 +4,14 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Diário de Classe — Instituto de Educação Silva Nascimento</title>
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#7a141e" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Diário ISN" />
+<link rel="apple-touch-icon" href="/icon-192.png" />
+<link rel="icon" href="/icon-192.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -184,6 +192,7 @@
     <div class="header-controls">
       <select id="turmaSelect"></select>
       <div class="sync-indicator"><span class="sync-dot" id="syncDot"></span><span id="syncLabel">—</span></div>
+      <button id="btnInstalarApp" onclick="instalarApp()" style="display:none;">📲 Instalar App</button>
       <button id="btnConfigFirebase">⚙ Firebase</button>
       <button id="btnExportPdf">📄 Exportar PDF</button>
       <button id="btnSair">Sair</button>
@@ -1164,6 +1173,30 @@ function exportarPdfMapaDeNotas() {
   });
 
   doc.save(`Mapa_de_Notas_${t.nome.replace(/\s+/g, "_")}_2026.pdf`);
+}
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}
+
+let deferredInstallPrompt = null;
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const btn = document.getElementById("btnInstalarApp");
+  if (btn) btn.style.display = "inline-flex";
+});
+
+function instalarApp() {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.finally(() => {
+    deferredInstallPrompt = null;
+    const btn = document.getElementById("btnInstalarApp");
+    if (btn) btn.style.display = "none";
+  });
 }
 
 iniciarLogin();
