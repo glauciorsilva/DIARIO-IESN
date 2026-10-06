@@ -4,7 +4,7 @@ Sistema de diário de classe digital para o Prof. Glaucio Rafael, com:
 
 - **Presença**: lista de chamada por data, com adição/remoção de alunos
 - **Ponto Extra**: lançamentos de pontos (soma ou desconto) por bimestre
-- **Notas**: teste, trabalho e prova por bimestre (pesos 3/1/6), com recuperação no 2º e 4º bimestre substituindo a média
+- **Notas**: média do bimestre = soma de teste + trabalho + prova + ponto extra (máx. 10); média final = soma das 4 médias ÷ 4 (aprovado com 7). Recuperação do meio do ano altera o 2º bimestre e a do fim do ano, o 4º — vale a maior nota
 - **Mapa de Notas**: resumo final por turma, com exportação em PDF
 - **Observações**: anotações livres por aluno
 - Sincronização automática com Firebase Firestore (via API REST)

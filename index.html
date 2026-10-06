@@ -305,8 +305,6 @@ const TURMAS_INICIAIS = {
   }
 };
 
-const PESOS = { teste: 3, trabalho: 1, prova: 6 };
-
 function clamp10(v) {
   v = Number(v) || 0;
   if (v < 0) return 0;
@@ -322,18 +320,21 @@ function somaPontosExtra(aluno, bim) {
   }, 0);
 }
 
+// Média do bimestre = SOMA de todos os pontos do bimestre
+// (teste + trabalho + prova + pontos extra), sem pesos, limitada a 10.
 function mediaBimestreBruta(aluno, bim) {
   const n = (aluno.notas && aluno.notas[bim]) || { teste: 0, trabalho: 0, prova: 0 };
-  const base = (Number(n.teste)||0)*PESOS.teste + (Number(n.trabalho)||0)*PESOS.trabalho + (Number(n.prova)||0)*PESOS.prova;
-  const media = base / 10;
-  const extra = somaPontosExtra(aluno, bim);
-  return clamp10(media + extra);
+  const soma = (Number(n.teste) || 0) + (Number(n.trabalho) || 0) + (Number(n.prova) || 0);
+  return clamp10(soma + somaPontosExtra(aluno, bim));
 }
 
+// Recuperação do meio do ano altera a média do 2º bimestre; a do fim do ano, a do 4º.
+// Vale a maior nota: se a recuperação for menor que a média do bimestre, a média é mantida.
 function mediaBimestreFinal(aluno, bim) {
   const bruta = mediaBimestreBruta(aluno, bim);
-  if ((bim === "b2" || bim === "b4") && aluno.recuperacao && aluno.recuperacao[bim] !== null && aluno.recuperacao[bim] !== undefined && aluno.recuperacao[bim] !== "") {
-    return clamp10(aluno.recuperacao[bim]);
+  const rec = (bim === "b2" || bim === "b4") && aluno.recuperacao ? aluno.recuperacao[bim] : null;
+  if (rec !== null && rec !== undefined && rec !== "") {
+    return Math.max(bruta, clamp10(rec));
   }
   return bruta;
 }
@@ -1060,7 +1061,7 @@ function renderNotas() {
   main.innerHTML = `
     <div class="card">
       <h3>Notas — ${t.nome}</h3>
-      <p class="hint">Pesos: Teste x3, Trabalho x1, Prova x6 (soma 10). Recuperação substitui a média do 2º e 4º bimestre. Use vírgula ou ponto para casas decimais (ex: 0,5).</p>
+      <p class="hint">Média do bimestre = soma dos pontos (teste + trabalho + prova + ponto extra), valendo no máximo 10. Média final = soma das 4 médias ÷ 4. A recuperação do meio do ano altera o 2º bimestre e a do fim do ano, o 4º (vale a maior nota). Use vírgula ou ponto para casas decimais (ex: 0,5).</p>
       <div class="table-wrap">
         <table class="tabela-notas">
           <thead>
