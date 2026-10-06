@@ -204,6 +204,7 @@
   .imp-st.erro { color: var(--red); }
   .imp-tabela td, .imp-tabela th { font-size: 12px; padding: 6px 8px; }
   .imp-tabela td.nm { text-align: left; }
+  .imp-tabela input.imp-nota { width: 56px; padding: 5px; text-align: center; font-size: 14px; }
 </style>
 </head>
 <body>
@@ -1343,16 +1344,6 @@ function montarPreviaImportacao(dados) {
     const usados = new Set();
     notas.forEach((n) => {
       const linha = { rotuloLote, turmaId, turmaNome: turma.nome, bim, av, nomeJson: n.nome || "", numero: n.numero };
-      if (n.nota === null || n.nota === undefined || n.nota === "") {
-        Object.assign(linha, { status: "pulado", erro: "Sem nota (pulado)", marcado: false });
-        linhas.push(linha); return;
-      }
-      const nota = Number(String(n.nota).replace(",", "."));
-      if (!isFinite(nota) || nota < 0 || nota > 10) {
-        Object.assign(linha, { status: "erro", erro: "Nota inválida: " + n.nota, marcado: false });
-        linhas.push(linha); return;
-      }
-      linha.nota = Math.round(nota * 100) / 100;
       let aluno = null;
       if (n.numero !== undefined && n.numero !== null && n.numero !== "") {
         aluno = turma.alunos.find((a) => a.num === Number(n.numero));
@@ -1372,14 +1363,30 @@ function montarPreviaImportacao(dados) {
         linhas.push(linha); return;
       }
       usados.add(aluno.num);
-      const cmp = compararNomes(n.nome, aluno.nome);
-      if (cmp === "diferente") Object.assign(linha, { status: "alerta", erro: "Nome não confere — verifique", marcado: false });
-      else if (cmp === "parecido") Object.assign(linha, { status: "alerta", erro: "Nome parecido", marcado: true });
-      else Object.assign(linha, { status: "ok", erro: cmp === "sem-nome" ? "OK (sem nome p/ conferir)" : "OK", marcado: true });
+      linha.cmp = compararNomes(n.nome, aluno.nome);
+      linha.editavel = true;
+      if (n.nota === null || n.nota === undefined || n.nota === "") {
+        Object.assign(linha, { status: "vazio", erro: "Sem nota — digite ao lado", marcado: false });
+        linhas.push(linha); return;
+      }
+      const nota = Number(String(n.nota).replace(",", "."));
+      if (!isFinite(nota) || nota < 0 || nota > 10) {
+        Object.assign(linha, { status: "vazio", erro: "Nota inválida (" + n.nota + ") — corrija ao lado", marcado: false });
+        linhas.push(linha); return;
+      }
+      linha.nota = Math.round(nota * 100) / 100;
+      aplicarStatusNome(linha);
       linhas.push(linha);
     });
   });
   return linhas;
+}
+
+// Define status/marcação de uma linha que já tem nota, conforme a conferência do nome
+function aplicarStatusNome(l) {
+  if (l.cmp === "diferente") Object.assign(l, { status: "alerta", erro: "Nome não confere — verifique", marcado: false });
+  else if (l.cmp === "parecido") Object.assign(l, { status: "alerta", erro: "Nome parecido", marcado: true });
+  else Object.assign(l, { status: "ok", erro: l.cmp === "sem-nome" ? "OK (sem nome p/ conferir)" : "OK", marcado: true });
 }
 
 function abrirModalImportacao() {
@@ -1393,16 +1400,29 @@ function abrirModalImportacao() {
   overlay.innerHTML = `
     <div class="modal wide">
       <h3>Importar notas (JSON)</h3>
-      <p class="hint">Escolha o arquivo <b>.json</b> gerado a partir da correção das provas, ou cole o conteúdo abaixo. Nada é gravado antes de você conferir a prévia e confirmar. Os alunos são localizados pelo <strong>número da chamada</strong> e o nome é usado para conferência.</p>
-      <div class="row-add" style="margin-top:10px;">
-        <input type="file" id="impArquivo" accept=".json,application/json">
-        <button class="btn" id="impModelo">Baixar modelo da turma atual</button>
+      <p class="hint"><b>Jeito mais rápido:</b> escolha o bimestre e a avaliação e toque em <b>Digitar notas da turma</b> — aparece a lista de alunos para você preencher as notas. Ou escolha um arquivo <b>.json</b> já com as notas. Nada é gravado antes de você conferir e confirmar.</p>
+      <div class="row-add" style="margin-top:10px;align-items:center;">
+        <label class="hint" style="margin:0;">Bimestre
+          <select id="impBim" style="padding:6px;border-radius:6px;border:1px solid var(--line);">
+            <option value="1">1º</option><option value="2">2º</option><option value="3">3º</option><option value="4">4º</option>
+          </select></label>
+        <label class="hint" style="margin:0;">Avaliação
+          <select id="impAv" style="padding:6px;border-radius:6px;border:1px solid var(--line);">
+            <option value="teste">Teste</option><option value="trabalho">Trabalho</option><option value="prova" selected>Prova</option><option value="recuperacao">Recuperação</option>
+          </select></label>
+        <button class="btn btn-primary" id="impDigitar">Digitar notas da turma</button>
+      </div>
+      <div class="row-add">
+        <input type="file" id="impArquivo">
+        <button class="btn" id="impModelo">Baixar modelo (.json)</button>
         ${temBackup ? `<button class="btn" id="impDesfazer" style="color:var(--red)">Desfazer última importação</button>` : ""}
       </div>
+      <details id="impColar" style="margin-bottom:6px;"><summary class="hint" style="cursor:pointer;margin:0;">Colar JSON manualmente</summary>
       <textarea id="impTexto" rows="6" style="width:100%;font-family:'IBM Plex Mono',monospace;font-size:12px;" placeholder='{ "turma": "7ANO", "bimestre": 3, "avaliacao": "prova", "notas": [ { "numero": 1, "nome": "...", "nota": 8.5 } ] }'></textarea>
       <div style="margin-top:8px;">
         <button class="btn" id="impPrevia">Ver prévia</button>
       </div>
+      </details>
       <div id="impPreviaArea"></div>
       <div class="modal-actions">
         <button class="btn" id="impFechar">Fechar</button>
@@ -1419,14 +1439,24 @@ function abrirModalImportacao() {
     if (!f) return;
     const leitor = new FileReader();
     leitor.onload = () => {
-      document.getElementById("impTexto").value = leitor.result;
+      document.getElementById("impTexto").value = String(leitor.result || "").replace(/^\uFEFF/, "");
       gerarPreviaImportacao();
+    };
+    leitor.onerror = () => {
+      document.getElementById("impPreviaArea").innerHTML = `<p class="hint" style="color:var(--red)">Não foi possível ler o arquivo "${escapeHtml(f.name)}".</p>`;
     };
     leitor.readAsText(f, "utf-8");
   });
   document.getElementById("impPrevia").addEventListener("click", gerarPreviaImportacao);
   document.getElementById("impConfirmar").addEventListener("click", confirmarImportacao);
   document.getElementById("impModelo").addEventListener("click", baixarModeloImportacao);
+  document.getElementById("impDigitar").addEventListener("click", () => {
+    document.getElementById("impTexto").value = JSON.stringify(montarModeloImportacao(), null, 2);
+    gerarPreviaImportacao();
+  });
+  // sugere o bimestre do mês atual (fev–abr=1º, mai–jul=2º, ago–set=3º, out–dez=4º)
+  const mes = new Date().getMonth() + 1;
+  document.getElementById("impBim").value = mes <= 4 ? "1" : mes <= 7 ? "2" : mes <= 9 ? "3" : "4";
   const btnDesfazer = document.getElementById("impDesfazer");
   if (btnDesfazer) btnDesfazer.addEventListener("click", desfazerUltimaImportacao);
 }
@@ -1446,42 +1476,56 @@ function gerarPreviaImportacao() {
   renderPreviaImportacao();
 }
 
-function renderPreviaImportacao() {
-  const area = document.getElementById("impPreviaArea");
-  const linhas = IMPORT_PREVIA || [];
-  const cont = { ok: 0, alerta: 0, erro: 0, pulado: 0 };
-  linhas.forEach((l) => { cont[l.status] = (cont[l.status] || 0) + 1; });
-  const marcadas = linhas.filter((l) => l.marcado).length;
+function contagemPrevia() {
+  const cont = { ok: 0, alerta: 0, erro: 0, vazio: 0 };
+  (IMPORT_PREVIA || []).forEach((l) => { cont[l.status] = (cont[l.status] || 0) + 1; });
+  return cont;
+}
 
-  let html = `<div class="imp-resumo">
-    <span>${linhas.length} linhas</span>
+function htmlResumoPrevia() {
+  const linhas = IMPORT_PREVIA || [];
+  const cont = contagemPrevia();
+  const comNota = linhas.filter((l) => l.nota !== undefined).length;
+  let html = `<span>${linhas.length} linhas</span>
     <span style="color:var(--green)">${cont.ok} ok</span>
     <span style="color:#8a6a1c">${cont.alerta} p/ conferir</span>
     <span style="color:var(--red)">${cont.erro} com erro</span>
-    ${cont.pulado ? `<span>${cont.pulado} sem nota</span>` : ""}
-  </div>
-  <div class="table-wrap" style="max-height:45vh;">
+    ${cont.vazio ? `<span>${cont.vazio} sem nota</span>` : ""}`;
+  if (!comNota && linhas.some((l) => l.editavel)) {
+    html += `<div class="hint" style="width:100%;margin:6px 0 0;color:var(--red);font-weight:600;">Nenhuma nota preenchida ainda. Digite as notas na coluna "Nova" abaixo — alunos que faltaram podem ficar em branco.</div>`;
+  }
+  return html;
+}
+
+function renderPreviaImportacao() {
+  const area = document.getElementById("impPreviaArea");
+  const linhas = IMPORT_PREVIA || [];
+  let html = `<div class="imp-resumo" id="impResumo">${htmlResumoPrevia()}</div>
+  <div class="table-wrap" style="max-height:50vh;">
   <table class="imp-tabela"><thead><tr>
-    <th>✔</th><th>Turma / Bim / Avaliação</th><th>Nº</th><th style="text-align:left">Aluno(a) no diário</th><th style="text-align:left">Nome no JSON</th><th>Atual → Nova</th><th>Status</th>
+    <th class="fix-num">Nº</th><th class="fix-nome" style="text-align:left">Aluno(a)</th><th>Atual</th><th>Nova</th><th>✔</th><th>Status</th><th style="text-align:left">Nome no JSON</th>
   </tr></thead><tbody>`;
+  let contexto = "";
   linhas.forEach((l, i) => {
-    const cls = l.status === "alerta" ? "imp-alerta" : (l.status === "erro" || l.status === "pulado") ? "imp-erro" : "";
-    const podeMarcar = l.status === "ok" || l.status === "alerta";
-    const contexto = l.turmaNome ? `${l.turmaNome} · ${rotuloBimestre(l.bim)} · ${rotuloAvaliacao(l.av)}` : l.rotuloLote;
+    const ctx = l.turmaNome ? `${l.turmaNome} · ${rotuloBimestre(l.bim)} · ${rotuloAvaliacao(l.av)}` : l.rotuloLote;
+    if (ctx !== contexto) {
+      contexto = ctx;
+      html += `<tr><td colspan="7" style="text-align:left;background:#f3ede0;font-weight:700;"><span style="position:sticky;left:8px;">${escapeHtml(ctx)}</span></td></tr>`;
+    }
     const atualTxt = l.atual === null || l.atual === undefined ? "—" : Number(l.atual).toFixed(1);
-    const notaTxt = l.nota === undefined ? "—" : l.nota.toFixed(1);
-    html += `<tr class="${cls}">
-      <td>${podeMarcar ? `<input type="checkbox" data-imp-idx="${i}" ${l.marcado ? "checked" : ""}>` : ""}</td>
-      <td>${escapeHtml(contexto)}</td>
-      <td>${escapeHtml(l.numero === undefined ? "—" : l.numero)}</td>
-      <td class="nm">${escapeHtml(l.nomeDiario || "—")}</td>
+    const notaVal = l.nota === undefined ? "" : String(l.nota).replace(".", ",");
+    html += `<tr id="impRow${i}" class="${classeLinhaPrevia(l)}">
+      <td class="fix-num">${escapeHtml(l.numero === undefined ? "—" : l.numero)}</td>
+      <td class="nm fix-nome">${escapeHtml(l.nomeDiario || "—")}</td>
+      <td>${atualTxt}</td>
+      <td>${l.editavel ? `<input type="text" class="imp-nota" data-imp-nota="${i}" value="${notaVal}" placeholder="—" inputmode="decimal" autocomplete="off" enterkeyhint="next" data-numerico data-max="10">` : "—"}</td>
+      <td>${l.editavel ? `<input type="checkbox" data-imp-idx="${i}" ${l.marcado ? "checked" : ""} ${l.nota === undefined ? "disabled" : ""}>` : ""}</td>
+      <td><span class="imp-st ${l.status === "vazio" ? "" : l.status}" id="impSt${i}">${escapeHtml(l.erro || "")}</span></td>
       <td class="nm" style="color:#8a7f74">${escapeHtml(l.nomeJson || "—")}</td>
-      <td>${atualTxt} → <strong>${notaTxt}</strong></td>
-      <td><span class="imp-st ${l.status === "pulado" ? "erro" : l.status}">${escapeHtml(l.erro || "")}</span></td>
     </tr>`;
   });
   html += `</tbody></table></div>
-  <p class="hint" style="margin-top:8px;">Linhas amarelas precisam de conferência: marque a caixa só se o aluno estiver certo. Linhas com erro não serão importadas.</p>`;
+  <p class="hint" style="margin-top:8px;">Linhas amarelas: o nome do arquivo não bate com o do diário — marque só se o aluno estiver certo. Linhas com erro não são importadas.</p>`;
   area.innerHTML = html;
 
   area.querySelectorAll("[data-imp-idx]").forEach((cb) => {
@@ -1490,11 +1534,54 @@ function renderPreviaImportacao() {
       atualizarBotaoConfirmar();
     });
   });
-  atualizarBotaoConfirmar(marcadas);
+  area.querySelectorAll("[data-imp-nota]").forEach((inp) => {
+    inp.addEventListener("input", () => atualizarNotaPrevia(Number(inp.dataset.impNota), inp.value));
+    inp.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      const todos = Array.from(area.querySelectorAll("[data-imp-nota]"));
+      const prox = todos[todos.indexOf(inp) + 1];
+      if (prox) prox.focus(); else inp.blur();
+    });
+  });
+  atualizarBotaoConfirmar();
+  area.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-function atualizarBotaoConfirmar(qtd) {
-  const n = qtd !== undefined ? qtd : (IMPORT_PREVIA || []).filter((l) => l.marcado).length;
+function classeLinhaPrevia(l) {
+  return l.status === "alerta" ? "imp-alerta" : l.status === "erro" ? "imp-erro" : "";
+}
+
+// Atualiza uma linha da prévia quando a nota é digitada (sem redesenhar a tabela)
+function atualizarNotaPrevia(i, valor) {
+  const l = IMPORT_PREVIA[i];
+  const v = String(valor || "").trim();
+  if (v === "") {
+    delete l.nota;
+    Object.assign(l, { status: "vazio", erro: "Sem nota — digite ao lado", marcado: false });
+  } else {
+    const n = parseDecimal(v);
+    if (!isFinite(n) || n < 0 || n > 10) {
+      delete l.nota;
+      Object.assign(l, { status: "vazio", erro: "Nota inválida", marcado: false });
+    } else {
+      l.nota = Math.round(n * 100) / 100;
+      aplicarStatusNome(l);
+    }
+  }
+  const row = document.getElementById("impRow" + i);
+  if (row) row.className = classeLinhaPrevia(l);
+  const cb = document.querySelector(`[data-imp-idx="${i}"]`);
+  if (cb) { cb.checked = l.marcado; cb.disabled = l.nota === undefined; }
+  const st = document.getElementById("impSt" + i);
+  if (st) { st.textContent = l.erro || ""; st.className = "imp-st " + (l.status === "vazio" ? "" : l.status); }
+  const resumo = document.getElementById("impResumo");
+  if (resumo) resumo.innerHTML = htmlResumoPrevia();
+  atualizarBotaoConfirmar();
+}
+
+function atualizarBotaoConfirmar() {
+  const n = (IMPORT_PREVIA || []).filter((l) => l.marcado && l.nota !== undefined).length;
   const btn = document.getElementById("impConfirmar");
   btn.disabled = n === 0;
   btn.textContent = n ? "Confirmar importação (" + n + ")" : "Confirmar importação";
@@ -1521,7 +1608,7 @@ function aplicarLinhasNoEstado(estado, linhas) {
 }
 
 function confirmarImportacao() {
-  const linhas = (IMPORT_PREVIA || []).filter((l) => l.marcado);
+  const linhas = (IMPORT_PREVIA || []).filter((l) => l.marcado && l.nota !== undefined);
   if (!linhas.length) return;
   if (!confirm("Gravar " + linhas.length + " nota(s) no diário?")) return;
   const btn = document.getElementById("impConfirmar");
@@ -1564,19 +1651,25 @@ function desfazerUltimaImportacao() {
   alert("Importação desfeita.");
 }
 
-function baixarModeloImportacao() {
+function montarModeloImportacao() {
   const t = turmaAtual();
-  const modelo = {
+  const bimSel = document.getElementById("impBim");
+  const avSel = document.getElementById("impAv");
+  return {
     turma: TURMA_ATUAL,
-    bimestre: 1,
-    avaliacao: "prova",
+    bimestre: bimSel ? Number(bimSel.value) : 1,
+    avaliacao: avSel ? avSel.value : "prova",
     notas: t.alunos.map((a) => ({ numero: a.num, nome: a.nome, nota: null }))
   };
+}
+
+function baixarModeloImportacao() {
+  const modelo = montarModeloImportacao();
   const blob = new Blob([JSON.stringify(modelo, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = "modelo_notas_" + TURMA_ATUAL + ".json";
+  link.download = "notas_" + TURMA_ATUAL + "_" + modelo.bimestre + "bim_" + modelo.avaliacao + ".json";
   document.body.appendChild(link);
   link.click();
   link.remove();
