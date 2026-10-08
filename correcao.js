@@ -206,7 +206,8 @@ function renderCorrecao() {
   main.innerHTML = `
     <div class="card">
       <h3>Correção por foto — ${t.nome}</h3>
-      <p class="hint">1) Cadastre o gabarito · 2) Imprima os cartões-resposta nominais e entregue com a prova · 3) Toque em <b>Corrigir por foto</b> e fotografe cada cartão. O app lê as marcações, confere com o gabarito, guarda a foto, os acertos e erros no Firebase e lança a nota na aba Notas.</p>
+      <p class="hint">1) Cadastre o gabarito (ou cole o JSON que vem com a prova) · 2) Use a prova com <b>faixa de respostas</b> no pé de cada folha, ou imprima os cartões-resposta · 3) Toque em <b>Corrigir por foto</b> e fotografe <b>cada folha</b> — em qualquer ordem. O app reconhece o aluno pelo <b>nº</b> (QR ou código da faixa), junta as folhas, confere com o gabarito, guarda as fotos, acertos e erros no Firebase e lança a nota na aba Notas.</p>
+      ${htmlColetaPendente()}
       ${pend.length ? `<div class="corr-aviso">⏳ ${pend.length} correção(ões) aguardando envio ao Firebase (as notas já estão no diário). <button class="btn btn-sm" id="corrReenviar">Enviar agora</button></div>` : ""}
       <div class="corr-hero">
         <button class="btn btn-primary" id="corrFoto">📷 Corrigir por foto</button>
@@ -222,7 +223,7 @@ function renderCorrecao() {
           <div class="corr-item">
             <div>
               <h4>${escapeHtml(g.titulo || "Sem título")}</h4>
-              <div class="meta">${g.bimestre}º bimestre · ${rotuloAvCurto(g.avaliacao)} · ${g.n} questões (${"ABCDE".slice(0, g.k)}) · ${(g.filas || ["A"]).length > 1 ? "Filas A e B" : "Fila única"} · vale ${fmtNota(g.total)}${(g.bonusBranco || []).some((v) => v) ? " · bônus: " + g.bonusBranco.map((v, i) => (v ? `Q${i + 1} em branco +${fmtNota(v)}` : "")).filter(Boolean).join(", ") : ""}</div>
+              <div class="meta">${g.bimestre}º bimestre · ${rotuloAvCurto(g.avaliacao)} · ${g.n} questões (${"ABCDE".slice(0, g.k)}) · ${(g.filas || ["A"]).length > 1 ? "Filas A e B" : "Fila única"}${g.paginas && g.paginas.length > 1 ? ` · ${g.paginas.length} folhas (${g.paginas.map((p) => p[0] + "–" + p[1]).join(", ")})` : ""} · vale ${fmtNota(g.total)}${(g.bonusBranco || []).some((v) => v) ? " · bônus: " + g.bonusBranco.map((v, i) => (v ? `Q${i + 1} em branco +${fmtNota(v)}` : "")).filter(Boolean).join(", ") : ""}</div>
             </div>
             <div class="acoes">
               <button class="btn btn-sm" data-gab-cartoes="${g.id}">🖨 Cartões</button>
@@ -238,6 +239,11 @@ function renderCorrecao() {
   document.getElementById("corrNovoGab").addEventListener("click", () => abrirEditorGabarito(null));
   document.getElementById("corrDigitar").addEventListener("click", () => digitarRespostas());
   document.getElementById("corrAtualizar").addEventListener("click", async () => { await carregarGabaritos(true); renderCorrecao(); });
+  main.querySelectorAll("[data-col-abrir]").forEach((b) => b.addEventListener("click", () => abrirConferenciaColeta(b.dataset.colAbrir)));
+  main.querySelectorAll("[data-col-apagar]").forEach((b) => b.addEventListener("click", () => {
+    if (!confirm("Descartar as folhas já fotografadas deste aluno?")) return;
+    const col = lerColeta(); delete col[b.dataset.colApagar]; gravarColeta(); renderAll();
+  }));
   const btnR = document.getElementById("corrReenviar");
   if (btnR) btnR.addEventListener("click", reenviarPendentes);
   main.querySelectorAll("[data-gab-cartoes]").forEach((b) => b.addEventListener("click", () => abrirModalCartoes(GABARITOS[b.dataset.gabCartoes])));
@@ -246,6 +252,22 @@ function renderCorrecao() {
   main.querySelectorAll("[data-gab-editar]").forEach((b) => b.addEventListener("click", () => abrirEditorGabarito(GABARITOS[b.dataset.gabEditar])));
   main.querySelectorAll("[data-gab-apagar]").forEach((b) => b.addEventListener("click", () => apagarGabarito(GABARITOS[b.dataset.gabApagar])));
   if (!GABARITOS_CARREGADOS) carregarGabaritos().then(() => { if (ABA_ATUAL === "correcao") renderCorrecao(); });
+}
+
+function htmlColetaPendente() {
+  const col = lerColeta(), itens = Object.entries(col);
+  if (!itens.length) return "";
+  return `<div class="corr-aviso" style="display:block">📄 <b>Provas esperando a outra folha</b> (guardadas neste aparelho):
+    ${itens.map(([k, it]) => {
+      const t = STATE.turmas[it.turma] || { alunos: [], nome: it.turma };
+      const al = t.alunos.find((a) => a.num === it.num);
+      const tem = Object.keys(it.folhas).map(Number).sort();
+      const faltam = []; for (let f = 1; f <= it.total; f++) if (!it.folhas[f]) faltam.push(f);
+      return `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px">
+        <span>${escapeHtml(t.nome)} · Nº ${it.num}${al ? " " + escapeHtml(al.nome) : ""} — tem folha ${tem.join(", ")}, falta ${faltam.join(", ")}</span>
+        <button class="btn btn-sm" data-col-abrir="${escapeHtml(k)}">Conferir assim</button>
+        <button class="btn btn-sm" data-col-apagar="${escapeHtml(k)}" style="color:var(--red)">Descartar</button></div>`;
+    }).join("")}</div>`;
 }
 
 /* ---------------- Editor de gabarito ---------------- */
@@ -286,6 +308,7 @@ function abrirEditorGabarito(gab) {
         <label>Nº de questões<input id="gN" type="number" min="1" max="50" value="${g.n}"></label>
         <label>Alternativas<select id="gK"><option value="4" ${g.k == 4 ? "selected" : ""}>A a D</option><option value="5" ${g.k == 5 ? "selected" : ""}>A a E</option></select></label>
         <label>Filas<select id="gFilas"><option value="A" ${g.filas.length === 1 ? "selected" : ""}>Fila única</option><option value="AB" ${g.filas.length > 1 ? "selected" : ""}>Filas A e B</option></select></label>
+        <label>Questões por folha (prova com faixa)<input id="gPaginas" placeholder="ex.: 1-5, 6-10" value="${(g.paginas || []).map((p) => p[0] + "-" + p[1]).join(", ")}"></label>
         <label>Valor total<input id="gTotal" type="text" inputmode="decimal" data-numerico data-max="10" value="${String(g.total).replace(".", ",")}"></label>
       </div>
       <details style="margin-bottom:10px"><summary class="hint" style="cursor:pointer;margin:0">Colar gabarito em JSON (gerado pelo Claude junto com a prova)</summary>
@@ -309,6 +332,9 @@ function abrirEditorGabarito(gab) {
       </div>`;
 
     const lerCabecalho = () => {
+      const pgTxt = (document.getElementById("gPaginas") || {}).value || "";
+      const pgs = pgTxt.split(/[;,]/).map((x) => x.trim()).filter(Boolean).map((x) => x.split(/\s*[-–a]\s*/).map(Number)).filter((p) => p[0] >= 1 && (p[1] || p[0]) >= p[0]).map((p) => [p[0], p[1] || p[0]]);
+      if (pgs.length) g.paginas = pgs; else delete g.paginas;
       g.titulo = document.getElementById("gTitulo").value.trim();
       g.bimestre = Number(document.getElementById("gBim").value);
       g.avaliacao = document.getElementById("gAv").value;
@@ -347,6 +373,9 @@ function abrirEditorGabarito(gab) {
         const qs = j.questoes || [];
         if (!qs.length) throw new Error("O JSON não tem \"questoes\".");
         if (j.titulo) g.titulo = j.titulo;
+        if (j.id && !gab) g.id = String(j.id).replace(/[^\w-]/g, "").slice(0, 20) || g.id;
+        g.paginas = Array.isArray(j.paginas) && j.paginas.length ? j.paginas.map((p) => [Number(p[0]), Number(p[1])]) : undefined;
+        if (!g.paginas) delete g.paginas;
         if (j.bimestre && resolverBimestre(j.bimestre)) g.bimestre = Number(resolverBimestre(j.bimestre).slice(1));
         if (j.avaliacao && resolverAvaliacao(j.avaliacao)) g.avaliacao = resolverAvaliacao(j.avaliacao);
         g.k = Number(j.alternativas) === 4 ? 4 : 5;
@@ -498,46 +527,189 @@ function retificarCartao(img, H, largura) {
   return cv;
 }
 
+/* ---------- Provas de várias folhas: junta as folhas de cada aluno antes de corrigir ---------- */
+const CORR_COLETA_KEY = "isn_diario_2026_folhas_coletadas";
+let COLETA = null; // chave "gab|turma|num" -> { gabId, turma, num, fila, total, folhas: { n: {qIni,qFim,leitura,foto} } }
+const PREPS = {};  // imagem já preparada de cada folha desta sessão (para reler se trocar o gabarito)
+
+function lerColeta() {
+  if (COLETA) return COLETA;
+  try { COLETA = JSON.parse(localStorage.getItem(CORR_COLETA_KEY) || "{}") || {}; } catch (e) { COLETA = {}; }
+  return COLETA;
+}
+function gravarColeta() {
+  try { localStorage.setItem(CORR_COLETA_KEY, JSON.stringify(COLETA || {})); }
+  catch (e) { console.warn("Sem espaço para guardar as folhas no aparelho", e); }
+}
+function chaveColeta(gabId, turma, num) { return `${gabId}|${turma}|${num}`; }
+
+// Questões de cada folha: pelo QR; senão pelo gabarito (campo paginas); senão divide igualmente
+function faixaDaFolha(g, folha, total) {
+  if (g.paginas && g.paginas[folha - 1]) return g.paginas[folha - 1];
+  total = total || (g.paginas ? g.paginas.length : 2);
+  const por = Math.ceil(g.n / total), ini = (folha - 1) * por + 1;
+  return [ini, Math.min(g.n, ini + por - 1)];
+}
+function totalFolhas(g, qr) { return (qr && qr.total) || (g && g.paginas ? g.paginas.length : 1); }
+
+function listaDaPagina(g, pg) {
+  return pg.geom === "faixa" ? CorrecaoCore.layoutFaixa(pg.qIni, pg.qFim, g.k) : CorrecaoCore.layoutQuestoes(g.n, g.k).lista;
+}
+
 async function processarFoto(file) {
-  mostrarCarregando("Lendo o cartão-resposta...");
+  mostrarCarregando("Lendo a folha...");
   await new Promise((r) => setTimeout(r, 30));
   try {
     await carregarGabaritos();
     const img = await carregarImagemReduzida(file, 1600);
     const prep = CorrecaoCore.prepararImagem(img);
     const loc = CorrecaoCore.localizarFolha(img, prep, window.jsQR);
-    const cartao = retificarCartao(img, loc.H, 900);
-    CORR_ATUAL = { img, prep, H: loc.H, cartao, qr: loc.qr, leitura: null, respostas: [] };
-    let gab = null;
-    if (loc.qr) gab = GABARITOS[loc.qr.gabId];
-    if (loc.qr && !gab) {
-      await carregarGabaritos(true);
-      gab = GABARITOS[loc.qr.gabId];
+    const qr = loc.qr || {};
+    let gab = qr.gabId ? GABARITOS[qr.gabId] : null;
+    if (qr.gabId && !gab) { await carregarGabaritos(true); gab = GABARITOS[qr.gabId]; }
+    const fotoCanvas = retificarCartao(img, loc.H, 900);
+
+    if (loc.geom === "cartao") { // cartão-resposta de folha inteira (todas as questões)
+      CORR_ATUAL = { paginas: [{ folha: 1, geom: "cartao", qIni: 1, qFim: gab ? gab.n : 0, canvas: fotoCanvas, prep, H: loc.H }],
+        qr: loc.qr, respostas: [], leitura: null };
+      CORR_ATUAL.gabId = gab ? gab.id : (gabaritosDaTurma(TURMA_ATUAL)[0] || {}).id;
+      CORR_ATUAL.turma = gab ? gab.turma : TURMA_ATUAL;
+      CORR_ATUAL.num = qr.num || null;
+      CORR_ATUAL.fila = qr.fila || "A";
+      if (CORR_ATUAL.gabId) lerComGabarito();
+      mostrarCarregando(null);
+      abrirRevisao(qr.gabId && !gab ? "O código aponta para um gabarito que não existe mais. Escolha o gabarito abaixo." :
+        !loc.qr ? "Não consegui ler o código do cartão. Confira o gabarito e o aluno abaixo." : "");
+      return;
     }
-    CORR_ATUAL.gabId = gab ? gab.id : (gabaritosDaTurma(TURMA_ATUAL)[0] || {}).id;
-    CORR_ATUAL.turma = gab ? gab.turma : TURMA_ATUAL;
-    CORR_ATUAL.num = loc.qr ? loc.qr.num : null;
-    CORR_ATUAL.fila = loc.qr ? loc.qr.fila : "A";
-    if (CORR_ATUAL.gabId) lerComGabarito();
+
+    // faixa de respostas de uma folha da prova
     mostrarCarregando(null);
-    abrirRevisao(loc.qr && !gab ? "O código do cartão aponta para um gabarito que não existe mais. Escolha o gabarito abaixo." :
-      !loc.qr ? "Não consegui ler o código do cartão. Confira o gabarito e o aluno abaixo." : "");
+    const folha = {
+      geom: "faixa", folha: qr.folha || 1, qIni: qr.qIni || null, qFim: qr.qFim || null,
+      canvas: fotoCanvas, prep, H: loc.H
+    };
+    let info = { gabId: gab ? gab.id : null, turma: gab ? gab.turma : (qr.turma || TURMA_ATUAL), num: qr.num || null, fila: qr.fila || "A", total: qr.total || null };
+    if (!info.gabId || !info.num) {
+      // sem QR: o nº veio do código de quadradinhos da faixa — sugere a prova que já espera esta folha deste nº
+      if (!info.gabId) {
+        const esperando = Object.values(lerColeta()).filter((it) => it.num === info.num && !it.folhas[folha.folha]);
+        const sug = esperando[0] ? GABARITOS[esperando[0].gabId] :
+          (gabaritosDaTurma(TURMA_ATUAL).find((x) => x.paginas && x.paginas.length > 1) || gabaritosDaTurma(TURMA_ATUAL)[0]);
+        if (sug) { info.gabId = sug.id; info.turma = sug.turma; if (esperando[0]) info.total = esperando[0].total; }
+      }
+      info = await identificarFolha(folha, info, qr.parcial ? "Não consegui ler o QR desta folha. Nº lido pelo código da faixa: " + (info.num || "?") + ". Confira:" : "Confirme de quem é esta folha:");
+      if (!info) return;
+    }
+    const g = GABARITOS[info.gabId];
+    if (!folha.qIni) { const f = faixaDaFolha(g, folha.folha, info.total); folha.qIni = f[0]; folha.qFim = f[1]; }
+    folha.leitura = CorrecaoCore.lerBolinhasLista(prep, loc.H, CorrecaoCore.layoutFaixa(folha.qIni, folha.qFim, g.k));
+    adicionarFolhaColetada(info, folha);
   } catch (e) {
     mostrarCarregando(null);
     alert(e.message || "Não foi possível ler a foto.");
   }
 }
 
+// Pede gabarito / aluno / folha quando o QR não pôde ser lido
+function identificarFolha(folha, info, titulo) {
+  return new Promise((ok) => {
+    const { ov, box } = criarModal("modalIdent", true);
+    const gabs = Object.values(GABARITOS).sort((a, b) => (b.paginas ? 1 : 0) - (a.paginas ? 1 : 0));
+    const desenhar = () => {
+      const g = GABARITOS[info.gabId] || gabs[0];
+      if (g && !info.gabId) info.gabId = g.id;
+      const turma = STATE.turmas[g ? g.turma : info.turma] || turmaAtual();
+      const total = g ? totalFolhas(g, info) : 2;
+      box.innerHTML = `<h3>Identificar folha</h3><p class="hint">${escapeHtml(titulo)}</p>
+        <div class="rev-campos">
+          <select id="iGab">${gabs.map((x) => `<option value="${x.id}" ${x.id === info.gabId ? "selected" : ""}>${escapeHtml((STATE.turmas[x.turma] || {}).nome || x.turma)} · ${escapeHtml(x.titulo)}</option>`).join("")}</select>
+          <select id="iAluno"><option value="">— nº / aluno —</option>${turma.alunos.map((a) => `<option value="${a.num}" ${a.num === info.num ? "selected" : ""}>${a.num}. ${escapeHtml(a.nome)}</option>`).join("")}</select>
+          <select id="iFolha">${Array.from({ length: Math.max(total, folha.folha) }, (_, i) => `<option value="${i + 1}" ${i + 1 === folha.folha ? "selected" : ""}>Folha ${i + 1}</option>`).join("")}</select>
+        </div>
+        <canvas id="iCanvas" style="width:100%;max-width:520px;border:1px solid var(--line);border-radius:8px"></canvas>
+        <div class="modal-actions"><button class="btn" id="iCancelar">Cancelar</button><button class="btn btn-primary" id="iOk">Continuar</button></div>`;
+      const cv = document.getElementById("iCanvas"); cv.width = folha.canvas.width; cv.height = folha.canvas.height;
+      cv.getContext("2d").drawImage(folha.canvas, 0, 0);
+      document.getElementById("iGab").addEventListener("change", (e) => { info.gabId = e.target.value; info.turma = GABARITOS[info.gabId].turma; desenhar(); });
+      document.getElementById("iAluno").addEventListener("change", (e) => { info.num = e.target.value ? Number(e.target.value) : null; });
+      document.getElementById("iFolha").addEventListener("change", (e) => { folha.folha = Number(e.target.value); });
+      document.getElementById("iCancelar").addEventListener("click", () => { ov.remove(); ok(null); });
+      document.getElementById("iOk").addEventListener("click", () => {
+        if (!info.gabId || !info.num) { alert("Escolha o gabarito e o nº do aluno."); return; }
+        info.turma = GABARITOS[info.gabId].turma; info.total = info.total || totalFolhas(GABARITOS[info.gabId], null);
+        folha.qIni = null; folha.qFim = null;
+        ov.remove(); ok(info);
+      });
+    };
+    desenhar();
+  });
+}
+
+function adicionarFolhaColetada(info, folha) {
+  const g = GABARITOS[info.gabId];
+  const total = info.total || totalFolhas(g, null);
+  const col = lerColeta();
+  const k = chaveColeta(g.id, g.turma, info.num);
+  const item = col[k] || { gabId: g.id, turma: g.turma, num: info.num, fila: info.fila, total, folhas: {} };
+  item.total = Math.max(item.total || 1, total);
+  item.fila = info.fila || item.fila;
+  item.folhas[folha.folha] = { qIni: folha.qIni, qFim: folha.qFim, leitura: folha.leitura, foto: folha.canvas.toDataURL("image/jpeg", 0.6) };
+  PREPS[k + "|" + folha.folha] = { prep: folha.prep, H: folha.H, canvas: folha.canvas };
+  col[k] = item; gravarColeta();
+  const faltam = [];
+  for (let f = 1; f <= item.total; f++) if (!item.folhas[f]) faltam.push(f);
+  const aluno = (STATE.turmas[g.turma] || { alunos: [] }).alunos.find((a) => a.num === info.num);
+  const quem = `Nº ${info.num}${aluno ? " — " + aluno.nome : ""}`;
+  if (faltam.length) {
+    renderAll();
+    const { ov, box } = criarModal("modalFalta");
+    box.innerHTML = `<h3>Folha ${folha.folha} de ${item.total} lida ✓</h3>
+      <p><b>${escapeHtml(quem)}</b><br><span class="hint">${escapeHtml(g.titulo)} · questões ${folha.qIni} a ${folha.qFim}</span></p>
+      <div class="corr-aviso">Falta fotografar: <b>${faltam.map((f) => "folha " + f).join(", ")}</b>. Pode ser agora ou depois — fica guardado neste aparelho.</div>
+      <div class="modal-actions" style="flex-wrap:wrap"><button class="btn" id="fdFechar">Depois</button><button class="btn btn-primary" id="fdFoto">📷 Fotografar a folha que falta</button></div>`;
+    document.getElementById("fdFechar").addEventListener("click", () => ov.remove());
+    document.getElementById("fdFoto").addEventListener("click", () => { ov.remove(); abrirCamera(); });
+    return;
+  }
+  abrirConferenciaColeta(k);
+}
+
+// Monta a conferência com todas as folhas do aluno
+function abrirConferenciaColeta(k, aviso) {
+  const item = lerColeta()[k];
+  const g = GABARITOS[item.gabId];
+  if (!g) { alert("O gabarito desta prova não foi encontrado."); return; }
+  const leitura = Array.from({ length: g.n }, (_, i) => ({ q: i + 1, fills: [], marcada: -1, status: "faltando" }));
+  const paginas = [];
+  Object.keys(item.folhas).map(Number).sort((a, b) => a - b).forEach((f) => {
+    const fo = item.folhas[f];
+    (fo.leitura || []).forEach((r) => { if (r.q >= 1 && r.q <= g.n) leitura[r.q - 1] = r; });
+    const mem = PREPS[k + "|" + f];
+    paginas.push({ folha: f, geom: "faixa", qIni: fo.qIni, qFim: fo.qFim, foto: fo.foto, canvas: mem ? mem.canvas : null, prep: mem ? mem.prep : null, H: mem ? mem.H : null });
+  });
+  CORR_ATUAL = { paginas, leitura, respostas: leitura.map((r) => r.marcada), gabId: g.id, turma: item.turma, num: item.num, fila: item.fila || "A", chaveColeta: k };
+  const faltando = leitura.filter((r) => r.status === "faltando").map((r) => r.q);
+  abrirRevisao(aviso || (faltando.length ? `Questões sem folha fotografada: ${faltando.join(", ")} (contam como em branco).` : ""));
+}
+
 function lerComGabarito() {
   const g = GABARITOS[CORR_ATUAL.gabId];
   if (!g) return;
-  if (!CORR_ATUAL.prep) { // digitação manual (prova sem cartão-resposta)
+  const pgs = CORR_ATUAL.paginas || [];
+  if (!pgs.length) { // digitação manual (prova sem cartão-resposta)
     CORR_ATUAL.leitura = Array.from({ length: g.n }, (_, i) => ({ q: i + 1, fills: [], marcada: -1, status: "ok" }));
     CORR_ATUAL.respostas = CORR_ATUAL.leitura.map(() => -1);
     return;
   }
-  CORR_ATUAL.leitura = CorrecaoCore.lerBolinhas(CORR_ATUAL.prep, CORR_ATUAL.H, g.n, g.k);
-  CORR_ATUAL.respostas = CORR_ATUAL.leitura.map((r) => r.marcada);
+  const leitura = Array.from({ length: g.n }, (_, i) => ({ q: i + 1, fills: [], marcada: -1, status: "faltando" }));
+  pgs.forEach((pg) => {
+    if (pg.geom === "cartao") pg.qFim = g.n;
+    if (!pg.prep) return;
+    CorrecaoCore.lerBolinhasLista(pg.prep, pg.H, listaDaPagina(g, pg)).forEach((r) => { if (r.q <= g.n) leitura[r.q - 1] = r; });
+  });
+  CORR_ATUAL.leitura = leitura;
+  CORR_ATUAL.respostas = leitura.map((r) => r.marcada);
 }
 
 function resultadoAtual() {
@@ -546,23 +718,26 @@ function resultadoAtual() {
   return CorrecaoCore.corrigir(CORR_ATUAL.respostas, g.respostas[fila], g.valores, g.bonusBranco);
 }
 
-function desenharSobreposicao(canvas, base, g, respostas, fila, detalhe) {
+// Desenha a foto de uma folha com as marcações por cima (lista = questões daquela folha)
+function desenharSobreposicao(canvas, base, g, respostas, fila, detalhe, lista) {
   const ctx = canvas.getContext("2d");
   canvas.width = base.width; canvas.height = base.height;
   ctx.drawImage(base, 0, 0);
   const esc = base.width / CorrecaoCore.PAG.w;
-  const L = CorrecaoCore.layoutQuestoes(g.n, g.k);
+  lista = lista || CorrecaoCore.layoutQuestoes(g.n, g.k).lista;
   const certas = g.respostas[fila] || "";
-  L.lista.forEach((q, i) => {
-    const r = CorrecaoCore.GRADE.raio * esc + 3;
+  lista.forEach((q) => {
+    const i = q.q - 1;
+    if (i < 0 || i >= g.n) return;
+    const r = (q.raio || CorrecaoCore.GRADE.raio) * esc + 3;
     const iCerta = CorrecaoCore.LETRAS.indexOf(certas[i]);
-    if (iCerta >= 0) {
+    if (iCerta >= 0 && q.bolinhas[iCerta]) {
       const b = q.bolinhas[iCerta];
       ctx.lineWidth = 3; ctx.strokeStyle = "#2e7d32";
       ctx.beginPath(); ctx.arc(b.x * esc, b.y * esc, r, 0, Math.PI * 2); ctx.stroke();
     }
     const m = respostas[i];
-    if (m >= 0) {
+    if (m >= 0 && q.bolinhas[m]) {
       const b = q.bolinhas[m];
       ctx.fillStyle = detalhe[i] === "certo" || detalhe[i] === "anulada" ? "rgba(46,125,50,.45)" : "rgba(179,38,30,.5)";
       ctx.beginPath(); ctx.arc(b.x * esc, b.y * esc, r - 1, 0, Math.PI * 2); ctx.fill();
@@ -574,9 +749,14 @@ function desenharSobreposicao(canvas, base, g, respostas, fila, detalhe) {
   });
 }
 
+function carregarImagemDataURL(url) {
+  return new Promise((ok) => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = url; });
+}
+
 function abrirRevisao(aviso) {
   const { ov, box } = criarModal("modalRevisao", true);
   box.style.maxWidth = "1000px";
+  const pgs = CORR_ATUAL.paginas || [];
 
   function desenhar() {
     const g = GABARITOS[CORR_ATUAL.gabId];
@@ -588,16 +768,16 @@ function abrirRevisao(aviso) {
     const notaAtual = g && aluno ? valorAtualNota(aluno, "b" + g.bimestre, g.avaliacao) : null;
     const letras = g ? CorrecaoCore.LETRAS.slice(0, g.k).split("") : [];
     box.innerHTML = `
-      <h3>Conferir correção</h3>
+      <h3>Conferir correção${pgs.length > 1 ? ` — ${pgs.length} folhas` : ""}</h3>
       ${aviso ? `<div class="corr-aviso">⚠️ ${escapeHtml(aviso)}</div>` : ""}
       <div class="rev-campos">
         <select id="rGab">${gabsTurma.length ? "" : `<option value="">(nenhum gabarito)</option>`}${gabsTurma.map((x) => `<option value="${x.id}" ${x.id === CORR_ATUAL.gabId ? "selected" : ""}>${escapeHtml((STATE.turmas[x.turma] || {}).nome || x.turma)} · ${escapeHtml(x.titulo)}</option>`).join("")}</select>
-        <select id="rAluno"><option value="">— escolha o aluno —</option>${turma.alunos.map((a) => `<option value="${a.num}" ${a.num === CORR_ATUAL.num ? "selected" : ""}>${a.num}. ${escapeHtml(a.nome)}</option>`).join("")}</select>
+        <select id="rAluno"><option value="">— escolha o aluno (nº) —</option>${turma.alunos.map((a) => `<option value="${a.num}" ${a.num === CORR_ATUAL.num ? "selected" : ""}>${a.num}. ${escapeHtml(a.nome)}</option>`).join("")}</select>
         ${g && (g.filas || []).length > 1 ? `<select id="rFila"><option value="A" ${CORR_ATUAL.fila === "A" ? "selected" : ""}>Fila A</option><option value="B" ${CORR_ATUAL.fila === "B" ? "selected" : ""}>Fila B</option></select>` : ""}
       </div>
       ${!g ? `<p class="hint" style="color:var(--red)">Cadastre um gabarito na aba Correção antes de corrigir.</p>` : `
       <div class="rev-wrap">
-        ${!CORR_ATUAL.cartao ? `<div><p class="hint">Sem foto: escolha ao lado a letra que o aluno marcou em cada questão (— = em branco ou rasurada).</p></div>` : `<div><canvas id="rCanvas"></canvas><p class="hint" style="margin-top:4px">Verde = resposta certa · preenchido verde/vermelho = o que o aluno marcou · amarelo = em branco ou marcação dupla.</p></div>`}
+        ${!pgs.length ? `<div><p class="hint">Sem foto: escolha ao lado a letra que o aluno marcou em cada questão (— = em branco ou rasurada).</p></div>` : `<div>${pgs.map((pg, i) => `${pgs.length > 1 ? `<p class="hint" style="margin:8px 0 4px"><b>Folha ${pg.folha}</b> · questões ${pg.qIni} a ${pg.qFim}</p>` : ""}<canvas id="rCanvas${i}"></canvas>`).join("")}<p class="hint" style="margin-top:4px">Verde = resposta certa · preenchido verde/vermelho = o que o aluno marcou · amarelo = em branco ou marcação dupla.</p></div>`}
         <div>
           <div class="hint" style="margin:0 0 4px">${g.bimestre}º bimestre · lança em <b>${rotuloAvCurto(g.avaliacao)}</b>${notaAtual !== null && notaAtual !== 0 ? ` · nota atual no diário: <b>${fmtNota(notaAtual)}</b> (será substituída)` : ""}</div>
           <div class="rev-totais">
@@ -609,25 +789,29 @@ function abrirRevisao(aviso) {
           <p class="hint" style="margin-bottom:6px">Se a leitura errou alguma questão, corrija aqui. Questões com contorno amarelo merecem uma olhada.</p>
           <div class="rev-q">${CORR_ATUAL.leitura.map((r, i) => {
             const m = CORR_ATUAL.respostas[i];
-            const atencao = r.status === "duvida" || r.status === "dupla";
-            return `<div class="${res.detalhe[i]} ${atencao ? "atencao" : ""}" title="${r.status === "dupla" ? "Marcação dupla" : r.status === "duvida" ? "Marcação fraca" : ""}">
+            const atencao = r.status === "duvida" || r.status === "dupla" || r.status === "faltando";
+            return `<div class="${res.detalhe[i]} ${atencao ? "atencao" : ""}" title="${r.status === "dupla" ? "Marcação dupla" : r.status === "duvida" ? "Marcação fraca" : r.status === "faltando" ? "Folha não fotografada" : ""}">
               <b>${String(i + 1).padStart(2, "0")}</b>
               <select data-rq="${i}"><option value="-1" ${m < 0 ? "selected" : ""}>—</option>${letras.map((L, j) => `<option value="${j}" ${m === j ? "selected" : ""}>${L}</option>`).join("")}</select>
-              <span>${res.detalhe[i] === "certo" ? "✓" : res.detalhe[i] === "errado" ? "✗ (" + (g.respostas[CORR_ATUAL.fila] || g.respostas.A)[i] + ")" : res.detalhe[i] === "anulada" ? "anul." : r.status === "dupla" ? "dupla" : ""}</span>
+              <span>${res.detalhe[i] === "certo" ? "✓" : res.detalhe[i] === "errado" ? "✗ (" + (g.respostas[CORR_ATUAL.fila] || g.respostas.A)[i] + ")" : res.detalhe[i] === "anulada" ? "anul." : r.status === "dupla" ? "dupla" : r.status === "faltando" ? "sem folha" : ""}</span>
             </div>`;
           }).join("")}</div>
         </div>
       </div>`}
       <p class="hint" id="rErro" style="color:var(--red);min-height:18px;margin:8px 0 0"></p>
       <div class="modal-actions" style="flex-wrap:wrap">
-        <button class="btn" id="rCancelar">Cancelar</button>
+        <button class="btn" id="rCancelar">${CORR_ATUAL.chaveColeta ? "Fechar (guardar)" : "Cancelar"}</button>
         <button class="btn" id="rOutra">📷 Tirar outra foto</button>
         ${g ? `<button class="btn btn-primary" id="rSalvar">Salvar e lançar nota</button>` : ""}
       </div>`;
 
-    if (g && CORR_ATUAL.leitura && CORR_ATUAL.cartao) {
+    if (g && CORR_ATUAL.leitura && pgs.length) {
       const fila = (g.filas || ["A"]).includes(CORR_ATUAL.fila) ? CORR_ATUAL.fila : "A";
-      desenharSobreposicao(document.getElementById("rCanvas"), CORR_ATUAL.cartao, g, CORR_ATUAL.respostas, fila, res.detalhe);
+      pgs.forEach(async (pg, i) => {
+        const base = pg.canvas || (pg.foto ? await carregarImagemDataURL(pg.foto) : null);
+        const cv = document.getElementById("rCanvas" + i);
+        if (base && cv) desenharSobreposicao(cv, base, g, CORR_ATUAL.respostas, fila, res.detalhe, listaDaPagina(g, pg));
+      });
     }
     document.getElementById("rGab").addEventListener("change", (e) => {
       CORR_ATUAL.gabId = e.target.value;
@@ -655,7 +839,7 @@ function abrirRevisao(aviso) {
 async function digitarRespostas(gabId) {
   await carregarGabaritos();
   const g = GABARITOS[gabId] || gabaritosDaTurma(TURMA_ATUAL)[0];
-  CORR_ATUAL = { prep: null, H: null, cartao: null, qr: null, leitura: null, respostas: [],
+  CORR_ATUAL = { paginas: [], qr: null, leitura: null, respostas: [],
     gabId: g ? g.id : null, turma: g ? g.turma : TURMA_ATUAL, num: null, fila: "A" };
   if (g) lerComGabarito();
   abrirRevisao("");
@@ -672,7 +856,7 @@ async function lancarNotaNoDiario(turmaId, num, nomeAluno, bim, av, nota) {
   }
   const turma = STATE.turmas[turmaId];
   if (!turma) return null;
-  const aluno = turma.alunos.find((a) => normalizarTexto(a.nome) === normalizarTexto(nomeAluno)) || turma.alunos.find((a) => a.num === num);
+  const aluno = turma.alunos.find((a) => a.num === num) || turma.alunos.find((a) => normalizarTexto(a.nome) === normalizarTexto(nomeAluno));
   if (!aluno) return null;
   const anterior = valorAtualNota(aluno, bim, av);
   if (av === "recuperacao") { aluno.recuperacao = aluno.recuperacao || { b2: null, b4: null }; aluno.recuperacao[bim] = nota; }
@@ -692,6 +876,7 @@ async function salvarCorrecao(ov) {
   const btn = document.getElementById("rSalvar"); btn.disabled = true; btn.textContent = "Salvando...";
 
   const lanc = await lancarNotaNoDiario(g.turma, aluno.num, aluno.nome, bim, g.avaliacao, res.nota);
+  const fotosAtuais = (CORR_ATUAL.paginas || []).map((pg) => (pg.canvas ? pg.canvas.toDataURL("image/jpeg", 0.6) : pg.foto)).filter(Boolean);
   const marcadas = CORR_ATUAL.respostas.map((r, i) => (r >= 0 ? CorrecaoCore.LETRAS[r] : CORR_ATUAL.leitura[i].status === "dupla" ? "*" : "-")).join("");
   const id = `cor_${g.id}_${g.turma}_${aluno.num}`;
   const doc = {
@@ -700,8 +885,10 @@ async function salvarCorrecao(ov) {
     acertos: res.acertos, erros: res.erros, brancos: res.brancos, nota: res.nota, valorTotal: g.total,
     notaAnterior: lanc ? lanc.anterior : null, lancadaNoDiario: !!lanc, ajusteManual: !!CORR_ATUAL.editadaManual,
     corrigidoEm: new Date().toISOString(),
-    foto: CORR_ATUAL.cartao ? CORR_ATUAL.cartao.toDataURL("image/jpeg", 0.6) : null,
-    origemLeitura: CORR_ATUAL.cartao ? "foto" : "digitada"
+    foto: fotosAtuais[0] || null,
+    fotos: fotosAtuais,
+    paginas: (CORR_ATUAL.paginas || []).map((pg) => ({ folha: pg.folha, geom: pg.geom, qIni: pg.qIni, qFim: pg.qFim })),
+    origemLeitura: fotosAtuais.length ? "foto" : "digitada"
   };
   let enviado = true;
   try { await fsSalvarDoc(id, doc); }
@@ -711,6 +898,12 @@ async function salvarCorrecao(ov) {
     pend.push({ id, doc });
     try { gravarPendentes(pend); } catch (e2) { alert("Sem espaço para guardar a foto no aparelho. A nota foi lançada, mas a foto não foi salva."); }
     console.warn(msgErroFirebaseCorrecao(e));
+  }
+  if (CORR_ATUAL.chaveColeta) {
+    const col = lerColeta();
+    delete col[CORR_ATUAL.chaveColeta];
+    Object.keys(PREPS).forEach((p) => { if (p.startsWith(CORR_ATUAL.chaveColeta + "|")) delete PREPS[p]; });
+    gravarColeta();
   }
   ov.remove();
   renderAll();
@@ -777,21 +970,23 @@ async function verFoto(id, g) {
   let c = null;
   try { c = await fsLerDoc(id); } catch (e) { mostrarCarregando(null); alert(msgErroFirebaseCorrecao(e)); return; }
   mostrarCarregando(null);
-  if (!c || !c.foto) { alert("Foto não encontrada."); return; }
+  const fotos = (c && c.fotos && c.fotos.length) ? c.fotos : (c && c.foto ? [c.foto] : []);
+  if (!fotos.length) { alert("Foto não encontrada."); return; }
+  const paginas = (c.paginas && c.paginas.length) ? c.paginas : [{ folha: 1, geom: "cartao", qIni: 1, qFim: g.n }];
   const { ov, box } = criarModal("modalFoto", true);
   box.innerHTML = `<h3>${c.num}. ${escapeHtml(c.nome)}</h3>
     <p class="hint">${c.acertos} acertos · ${c.erros} erros · ${c.brancos} em branco · nota <b>${fmtNota(c.nota)}</b> · corrigido em ${new Date(c.corrigidoEm).toLocaleString("pt-BR")}</p>
-    <canvas id="fCanvas" style="width:100%;max-width:640px;border:1px solid var(--line);border-radius:8px"></canvas>
+    ${fotos.map((_, i) => `${fotos.length > 1 ? `<p class="hint" style="margin:8px 0 4px"><b>Folha ${(paginas[i] || {}).folha || i + 1}</b></p>` : ""}<canvas id="fCanvas${i}" style="width:100%;max-width:640px;border:1px solid var(--line);border-radius:8px"></canvas>`).join("")}
     <div class="modal-actions"><button class="btn" id="fFechar">Fechar</button></div>`;
   document.getElementById("fFechar").addEventListener("click", () => ov.remove());
-  const im = new Image();
-  im.onload = () => {
-    const resp = String(c.marcadas || "").split("").map((L) => CorrecaoCore.LETRAS.indexOf(L));
-    const gg = Object.assign({}, g, { respostas: { [c.fila || "A"]: c.gabaritoUsado || g.respostas[c.fila || "A"] } });
-    const det = CorrecaoCore.corrigir(resp, gg.respostas[c.fila || "A"], g.valores, g.bonusBranco).detalhe;
-    desenharSobreposicao(document.getElementById("fCanvas"), im, gg, resp, c.fila || "A", det);
-  };
-  im.src = c.foto;
+  const resp = String(c.marcadas || "").split("").map((L) => CorrecaoCore.LETRAS.indexOf(L));
+  const fila = c.fila || "A";
+  const gg = Object.assign({}, g, { respostas: { [fila]: c.gabaritoUsado || g.respostas[fila] } });
+  const det = CorrecaoCore.corrigir(resp, gg.respostas[fila], g.valores, g.bonusBranco).detalhe;
+  fotos.forEach(async (url, i) => {
+    const im = await carregarImagemDataURL(url);
+    if (im) desenharSobreposicao(document.getElementById("fCanvas" + i), im, gg, resp, fila, det, listaDaPagina(g, paginas[i] || paginas[0]));
+  });
 }
 
 // Recalcula as correções já feitas quando o gabarito muda (ex.: questão anulada)
@@ -808,7 +1003,7 @@ async function recalcularCorrecoes(g) {
       await fsSalvarDoc(c._id, { acertos: r.acertos, erros: r.erros, brancos: r.brancos, nota: r.nota, valorTotal: g.total, gabaritoUsado: g.respostas[fila], titulo: g.titulo, bimestre: g.bimestre, avaliacao: g.avaliacao },
         ["acertos", "erros", "brancos", "nota", "valorTotal", "gabaritoUsado", "titulo", "bimestre", "avaliacao"]);
       const turma = STATE.turmas[g.turma];
-      const aluno = turma && (turma.alunos.find((a) => normalizarTexto(a.nome) === normalizarTexto(c.nome)) || turma.alunos.find((a) => a.num === c.num));
+      const aluno = turma && (turma.alunos.find((a) => a.num === c.num) || turma.alunos.find((a) => normalizarTexto(a.nome) === normalizarTexto(c.nome)));
       if (aluno) {
         const bim = "b" + g.bimestre;
         if (g.avaliacao === "recuperacao") { aluno.recuperacao = aluno.recuperacao || { b2: null, b4: null }; aluno.recuperacao[bim] = r.nota; }

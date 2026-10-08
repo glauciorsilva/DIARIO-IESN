@@ -61,6 +61,16 @@ Aba **Correção** (e botões **📷 Corrigir prova** no topo e na aba Notas).
 4. **📊 Resultados**: quem já foi corrigido, acertos/erros/nota e a foto de cada cartão.
    Editar o gabarito (ex.: anular uma questão) oferece recalcular as notas já lançadas.
 
+**Provas de várias folhas (faixa de respostas):** o gerador de provas (`modelo/iesn_modelo.py`, no
+Projeto do Claude, função `gerar_turma`) põe no pé de **cada folha** uma faixa com as bolinhas das
+questões daquela folha, 4 quadrados nos cantos, o **Nº do aluno** (texto + código de quadradinhos) e um
+QR (gabarito, turma, nº, fila, folha, questões). Fotografe cada folha, em qualquer ordem: o app guarda as
+folhas no aparelho e só abre a conferência quando todas as folhas do aluno chegaram (dá para "Conferir
+assim" se faltar alguma). O aluno é sempre localizado pelo **número**; o nome só confere. Sem QR, o nº
+vem do código de quadradinhos e o app pede para confirmar a prova. O gerador também cria
+`<prova>_gabarito.json` (com `id` e `paginas`) para colar em **Novo gabarito → Colar JSON**.
+A geometria da faixa (`FAIXA`) é igual em `correcao-core.js` e em `iesn_modelo.py`.
+
 **✍️ Digitar respostas**: para provas sem cartão-resposta (ex.: as do 3º bimestre já aplicadas) — escolha
 o aluno e a letra marcada em cada questão; o app confere com o gabarito e lança a nota do mesmo jeito.
 
