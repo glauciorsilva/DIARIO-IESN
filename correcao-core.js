@@ -375,13 +375,14 @@
   // ---------------- Correção ----------------
   // gabaritoFila: string "CABD..." (letra correta de cada questão; "X" = anulada, vale para todos)
   // respostas: array de índices (-1 = branco/inválida)
-  function corrigir(respostas, gabaritoFila, valores) {
+  // bonusBranco (opcional): pontos ganhos por deixar a questão em branco (ex.: "quem não responder a 3 ganha 1,5")
+  function corrigir(respostas, gabaritoFila, valores, bonusBranco) {
     let acertos = 0, erros = 0, brancos = 0, nota = 0;
     const detalhe = respostas.map((r, i) => {
       const certa = String(gabaritoFila[i] || "").toUpperCase();
       const v = Number(valores[i]) || 0;
       if (certa === "X") { acertos++; nota += v; return "anulada"; } // questão anulada: ponto para todos
-      if (r < 0) { brancos++; return "branco"; }
+      if (r < 0) { brancos++; nota += Number((bonusBranco || [])[i]) || 0; return "branco"; }
       if (LETRAS[r] === certa) { acertos++; nota += v; return "certo"; }
       erros++; return "errado";
     });

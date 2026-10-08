@@ -61,6 +61,13 @@ Aba **Correção** (e botões **📷 Corrigir prova** no topo e na aba Notas).
 4. **📊 Resultados**: quem já foi corrigido, acertos/erros/nota e a foto de cada cartão.
    Editar o gabarito (ex.: anular uma questão) oferece recalcular as notas já lançadas.
 
+**✍️ Digitar respostas**: para provas sem cartão-resposta (ex.: as do 3º bimestre já aplicadas) — escolha
+o aluno e a letra marcada em cada questão; o app confere com o gabarito e lança a nota do mesmo jeito.
+
+`gabaritos-iniciais.js` traz os gabaritos das provas do 3º bimestre (6º ao 9º ano: 10 questões a–d,
+valores 0,4/0,7/0,3/0,8/0,8/0,4/0,8/0,4/0,5/0,9 = 6,0, e +1,5 para quem deixar a questão 3 em branco).
+Eles são gravados no Firebase automaticamente na primeira abertura com internet (uma vez só).
+
 Sem internet, a nota vai para o diário e a foto fica guardada no aparelho até **Enviar agora**.
 
 ### Onde fica no Firebase

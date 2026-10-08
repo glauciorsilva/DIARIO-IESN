@@ -104,6 +104,7 @@ async function carregarGabaritos(forcar) {
     const lista = await fsConsultar({ tipo: "gabarito" });
     GABARITOS = {};
     lista.forEach((g) => { GABARITOS[g.id] = g; });
+    await semearGabaritos();
     salvarCacheGabaritos();
     GABARITOS_CARREGADOS = true;
   } catch (e) {
@@ -111,6 +112,22 @@ async function carregarGabaritos(forcar) {
   }
   return GABARITOS;
 }
+// Gabaritos já usados em sala (gabaritos-iniciais.js): cada um é gravado uma única vez.
+// Se for apagado depois, não volta (a marca "semeado" fica no Firebase).
+async function semearGabaritos() {
+  const sementes = window.GABARITOS_INICIAIS || [];
+  for (const sem of sementes) {
+    if (GABARITOS[sem.id]) continue;
+    const marca = await fsLerDoc("semente_gab_" + sem.id).catch(() => ({}));
+    if (marca) continue;
+    const g = Object.assign({ tipo: "gabarito", criadoEm: new Date().toISOString() }, sem);
+    g.atualizadoEm = g.criadoEm;
+    await fsSalvarDoc("gab_" + g.id, g);
+    await fsSalvarDoc("semente_gab_" + g.id, { tipo: "semente", gabaritoId: g.id, em: g.criadoEm });
+    GABARITOS[g.id] = g;
+  }
+}
+
 function gabaritosDaTurma(turmaId) {
   return Object.values(GABARITOS).filter((g) => g.turma === turmaId)
     .sort((a, b) => (b.bimestre - a.bimestre) || String(b.criadoEm).localeCompare(String(a.criadoEm)));
@@ -193,6 +210,7 @@ function renderCorrecao() {
       ${pend.length ? `<div class="corr-aviso">⏳ ${pend.length} correção(ões) aguardando envio ao Firebase (as notas já estão no diário). <button class="btn btn-sm" id="corrReenviar">Enviar agora</button></div>` : ""}
       <div class="corr-hero">
         <button class="btn btn-primary" id="corrFoto">📷 Corrigir por foto</button>
+        <button class="btn" id="corrDigitar">✍️ Digitar respostas</button>
         <button class="btn" id="corrNovoGab">+ Novo gabarito</button>
         <button class="btn" id="corrAtualizar">↻ Atualizar</button>
       </div>
@@ -204,11 +222,12 @@ function renderCorrecao() {
           <div class="corr-item">
             <div>
               <h4>${escapeHtml(g.titulo || "Sem título")}</h4>
-              <div class="meta">${g.bimestre}º bimestre · ${rotuloAvCurto(g.avaliacao)} · ${g.n} questões (${"ABCDE".slice(0, g.k)}) · ${(g.filas || ["A"]).length > 1 ? "Filas A e B" : "Fila única"} · vale ${fmtNota(g.total)}</div>
+              <div class="meta">${g.bimestre}º bimestre · ${rotuloAvCurto(g.avaliacao)} · ${g.n} questões (${"ABCDE".slice(0, g.k)}) · ${(g.filas || ["A"]).length > 1 ? "Filas A e B" : "Fila única"} · vale ${fmtNota(g.total)}${(g.bonusBranco || []).some((v) => v) ? " · bônus: " + g.bonusBranco.map((v, i) => (v ? `Q${i + 1} em branco +${fmtNota(v)}` : "")).filter(Boolean).join(", ") : ""}</div>
             </div>
             <div class="acoes">
               <button class="btn btn-sm" data-gab-cartoes="${g.id}">🖨 Cartões</button>
               <button class="btn btn-sm" data-gab-result="${g.id}">📊 Resultados</button>
+              <button class="btn btn-sm" data-gab-digitar="${g.id}">✍️ Digitar</button>
               <button class="btn btn-sm" data-gab-editar="${g.id}">✏️ Editar</button>
               <button class="btn btn-sm" data-gab-apagar="${g.id}" style="color:var(--red)">🗑</button>
             </div>
@@ -217,11 +236,13 @@ function renderCorrecao() {
     </div>`;
   document.getElementById("corrFoto").addEventListener("click", abrirCamera);
   document.getElementById("corrNovoGab").addEventListener("click", () => abrirEditorGabarito(null));
+  document.getElementById("corrDigitar").addEventListener("click", () => digitarRespostas());
   document.getElementById("corrAtualizar").addEventListener("click", async () => { await carregarGabaritos(true); renderCorrecao(); });
   const btnR = document.getElementById("corrReenviar");
   if (btnR) btnR.addEventListener("click", reenviarPendentes);
   main.querySelectorAll("[data-gab-cartoes]").forEach((b) => b.addEventListener("click", () => abrirModalCartoes(GABARITOS[b.dataset.gabCartoes])));
   main.querySelectorAll("[data-gab-result]").forEach((b) => b.addEventListener("click", () => abrirResultados(GABARITOS[b.dataset.gabResult])));
+  main.querySelectorAll("[data-gab-digitar]").forEach((b) => b.addEventListener("click", () => digitarRespostas(b.dataset.gabDigitar)));
   main.querySelectorAll("[data-gab-editar]").forEach((b) => b.addEventListener("click", () => abrirEditorGabarito(GABARITOS[b.dataset.gabEditar])));
   main.querySelectorAll("[data-gab-apagar]").forEach((b) => b.addEventListener("click", () => apagarGabarito(GABARITOS[b.dataset.gabApagar])));
   if (!GABARITOS_CARREGADOS) carregarGabaritos().then(() => { if (ABA_ATUAL === "correcao") renderCorrecao(); });
@@ -271,6 +292,7 @@ function abrirEditorGabarito(gab) {
         <textarea id="gJson" rows="5" style="width:100%;font-family:'IBM Plex Mono',monospace;font-size:12px;margin-top:6px" placeholder='{ "titulo": "PROVA DE HISTÓRIA 3º BIMESTRE", "bimestre": 3, "avaliacao": "prova", "alternativas": 5, "questoes": [ { "A": "D", "B": "A", "valor": 0.4 } ] }'></textarea>
         <button class="btn btn-sm" id="gJsonAplicar" style="margin-top:6px">Aplicar JSON</button>
       </details>
+      ${(g.bonusBranco || []).some((v) => v) ? `<div class="corr-aviso" style="margin-bottom:8px">Bônus por deixar em branco: ${g.bonusBranco.map((v, i) => (v ? `Q${i + 1} +${fmtNota(v)}` : "")).filter(Boolean).join(", ")} (a nota pode passar do valor total).</div>` : ""}
       <p class="hint" style="margin-bottom:6px">Toque na letra certa de cada questão. <b>∅</b> = questão anulada (todos ganham o ponto). Soma dos valores: <b id="gSoma">${fmtNota(somaValores())}</b> <button class="btn btn-sm" id="gDistribuir">Distribuir igualmente</button></p>
       <div class="table-wrap" style="max-height:46vh">
         <table class="gab-grade"><thead><tr><th>Q</th>${g.filas.map((f) => `<th>${g.filas.length > 1 ? "Fila " + f : "Resposta"}</th>`).join("")}<th>Valor</th></tr></thead>
@@ -299,7 +321,7 @@ function abrirEditorGabarito(gab) {
     });
     document.getElementById("gN").addEventListener("change", (e) => {
       lerCabecalho();
-      g.n = Math.max(1, Math.min(50, Number(e.target.value) || 1)); g.valores = []; desenhar();
+      g.n = Math.max(1, Math.min(50, Number(e.target.value) || 1)); g.valores = []; delete g.bonusBranco; desenhar();
     });
     document.getElementById("gK").addEventListener("change", (e) => {
       lerCabecalho(); g.k = Number(e.target.value);
@@ -337,6 +359,8 @@ function abrirEditorGabarito(gab) {
           }).join("");
         });
         g.valores = qs.slice(0, g.n).map((q) => Number(String(q.valor === undefined ? "" : q.valor).replace(",", ".")) || 0);
+        g.bonusBranco = qs.slice(0, g.n).map((q) => Number(String(q.bonusEmBranco === undefined ? "" : q.bonusEmBranco).replace(",", ".")) || 0);
+        if (!g.bonusBranco.some((v) => v)) delete g.bonusBranco;
         g.total = g.valores.some((v) => v) ? somaValores() : (VALOR_PADRAO[g.avaliacao] || 10);
         if (!g.valores.some((v) => v)) g.valores = [];
         desenhar();
@@ -356,7 +380,7 @@ function abrirEditorGabarito(gab) {
       g.total = somaValores();
       g.atualizadoEm = new Date().toISOString();
       if (!g.criadoEm) g.criadoEm = g.atualizadoEm;
-      const mudouRespostas = gab && (JSON.stringify(gab.respostas) !== JSON.stringify(g.respostas) || JSON.stringify(gab.valores) !== JSON.stringify(g.valores));
+      const mudouRespostas = gab && (JSON.stringify(gab.respostas) !== JSON.stringify(g.respostas) || JSON.stringify(gab.valores) !== JSON.stringify(g.valores) || JSON.stringify(gab.bonusBranco || []) !== JSON.stringify(g.bonusBranco || []));
       const btn = document.getElementById("gSalvar"); btn.disabled = true; btn.textContent = "Salvando...";
       try {
         await fsSalvarDoc("gab_" + g.id, g);
@@ -507,6 +531,11 @@ async function processarFoto(file) {
 function lerComGabarito() {
   const g = GABARITOS[CORR_ATUAL.gabId];
   if (!g) return;
+  if (!CORR_ATUAL.prep) { // digitação manual (prova sem cartão-resposta)
+    CORR_ATUAL.leitura = Array.from({ length: g.n }, (_, i) => ({ q: i + 1, fills: [], marcada: -1, status: "ok" }));
+    CORR_ATUAL.respostas = CORR_ATUAL.leitura.map(() => -1);
+    return;
+  }
   CORR_ATUAL.leitura = CorrecaoCore.lerBolinhas(CORR_ATUAL.prep, CORR_ATUAL.H, g.n, g.k);
   CORR_ATUAL.respostas = CORR_ATUAL.leitura.map((r) => r.marcada);
 }
@@ -514,7 +543,7 @@ function lerComGabarito() {
 function resultadoAtual() {
   const g = GABARITOS[CORR_ATUAL.gabId];
   const fila = (g.filas || ["A"]).includes(CORR_ATUAL.fila) ? CORR_ATUAL.fila : "A";
-  return CorrecaoCore.corrigir(CORR_ATUAL.respostas, g.respostas[fila], g.valores);
+  return CorrecaoCore.corrigir(CORR_ATUAL.respostas, g.respostas[fila], g.valores, g.bonusBranco);
 }
 
 function desenharSobreposicao(canvas, base, g, respostas, fila, detalhe) {
@@ -568,7 +597,7 @@ function abrirRevisao(aviso) {
       </div>
       ${!g ? `<p class="hint" style="color:var(--red)">Cadastre um gabarito na aba Correção antes de corrigir.</p>` : `
       <div class="rev-wrap">
-        <div><canvas id="rCanvas"></canvas><p class="hint" style="margin-top:4px">Verde = resposta certa · preenchido verde/vermelho = o que o aluno marcou · amarelo = em branco ou marcação dupla.</p></div>
+        ${!CORR_ATUAL.cartao ? `<div><p class="hint">Sem foto: escolha ao lado a letra que o aluno marcou em cada questão (— = em branco ou rasurada).</p></div>` : `<div><canvas id="rCanvas"></canvas><p class="hint" style="margin-top:4px">Verde = resposta certa · preenchido verde/vermelho = o que o aluno marcou · amarelo = em branco ou marcação dupla.</p></div>`}
         <div>
           <div class="hint" style="margin:0 0 4px">${g.bimestre}º bimestre · lança em <b>${rotuloAvCurto(g.avaliacao)}</b>${notaAtual !== null && notaAtual !== 0 ? ` · nota atual no diário: <b>${fmtNota(notaAtual)}</b> (será substituída)` : ""}</div>
           <div class="rev-totais">
@@ -596,7 +625,7 @@ function abrirRevisao(aviso) {
         ${g ? `<button class="btn btn-primary" id="rSalvar">Salvar e lançar nota</button>` : ""}
       </div>`;
 
-    if (g && CORR_ATUAL.leitura) {
+    if (g && CORR_ATUAL.leitura && CORR_ATUAL.cartao) {
       const fila = (g.filas || ["A"]).includes(CORR_ATUAL.fila) ? CORR_ATUAL.fila : "A";
       desenharSobreposicao(document.getElementById("rCanvas"), CORR_ATUAL.cartao, g, CORR_ATUAL.respostas, fila, res.detalhe);
     }
@@ -620,6 +649,16 @@ function abrirRevisao(aviso) {
     if (bs) bs.addEventListener("click", () => salvarCorrecao(ov));
   }
   desenhar();
+}
+
+// Lançar respostas à mão (provas antigas, sem cartão-resposta): mesma conferência, sem foto
+async function digitarRespostas(gabId) {
+  await carregarGabaritos();
+  const g = GABARITOS[gabId] || gabaritosDaTurma(TURMA_ATUAL)[0];
+  CORR_ATUAL = { prep: null, H: null, cartao: null, qr: null, leitura: null, respostas: [],
+    gabId: g ? g.id : null, turma: g ? g.turma : TURMA_ATUAL, num: null, fila: "A" };
+  if (g) lerComGabarito();
+  abrirRevisao("");
 }
 
 /* ======================= SALVAR ======================= */
@@ -661,7 +700,8 @@ async function salvarCorrecao(ov) {
     acertos: res.acertos, erros: res.erros, brancos: res.brancos, nota: res.nota, valorTotal: g.total,
     notaAnterior: lanc ? lanc.anterior : null, lancadaNoDiario: !!lanc, ajusteManual: !!CORR_ATUAL.editadaManual,
     corrigidoEm: new Date().toISOString(),
-    foto: CORR_ATUAL.cartao.toDataURL("image/jpeg", 0.6)
+    foto: CORR_ATUAL.cartao ? CORR_ATUAL.cartao.toDataURL("image/jpeg", 0.6) : null,
+    origemLeitura: CORR_ATUAL.cartao ? "foto" : "digitada"
   };
   let enviado = true;
   try { await fsSalvarDoc(id, doc); }
@@ -677,7 +717,9 @@ async function salvarCorrecao(ov) {
   const msg = `${aluno.num}. ${aluno.nome}\n${res.acertos} acertos · ${res.erros} erros · ${res.brancos} em branco\nNota ${fmtNota(res.nota)} lançada em ${rotuloAvCurto(g.avaliacao)} (${g.bimestre}º bim.).` +
     (enviado ? "" : "\n\n⚠️ A foto ficou guardada no aparelho e será enviada ao Firebase depois (aba Correção → Enviar agora).") +
     "\n\nCorrigir o próximo cartão?";
-  if (confirm(msg)) abrirCamera();
+  if (!doc.foto) {
+    if (confirm(msg.replace("Corrigir o próximo cartão?", "Digitar a prova do próximo aluno?"))) digitarRespostas(g.id);
+  } else if (confirm(msg)) abrirCamera();
 }
 
 async function reenviarPendentes() {
@@ -700,7 +742,7 @@ async function abrirResultados(g) {
   box.innerHTML = `<h3>Resultados — ${escapeHtml(g.titulo)}</h3><p class="hint">Carregando...</p>`;
   let cors = [];
   try {
-    cors = await fsConsultar({ tipo: "correcao", gabaritoId: g.id }, ["num", "nome", "fila", "acertos", "erros", "brancos", "nota", "corrigidoEm", "ajusteManual"]);
+    cors = await fsConsultar({ tipo: "correcao", gabaritoId: g.id }, ["num", "nome", "fila", "acertos", "erros", "brancos", "nota", "corrigidoEm", "ajusteManual", "origemLeitura"]);
   } catch (e) { box.innerHTML += `<p class="hint" style="color:var(--red)">${escapeHtml(msgErroFirebaseCorrecao(e))}</p>`; }
   const pend = lerPendentes().filter((p) => p.doc.gabaritoId === g.id).map((p) => Object.assign({ _id: p.id, _pendente: true }, p.doc));
   pend.forEach((p) => { if (!cors.some((c) => c._id === p._id)) cors.push(p); });
@@ -720,7 +762,7 @@ async function abrirResultados(g) {
         const c = porNum[a.num];
         return `<tr><td class="fix-num">${a.num}</td><td class="nome-col fix-nome">${escapeHtml(a.nome)}</td>
           ${c ? `<td>${c.fila || "A"}</td><td style="color:var(--green)">${c.acertos}</td><td style="color:var(--red)">${c.erros}</td><td>${c.brancos}</td><td><b>${fmtNota(c.nota)}</b>${c.ajusteManual ? " ✎" : ""}</td>
-          <td>${c._pendente ? "⏳" : `<button class="icon-btn" data-foto="${c._id}">🖼</button>`}</td>`
+          <td>${c._pendente ? "⏳" : c.origemLeitura === "digitada" ? "✍️" : `<button class="icon-btn" data-foto="${c._id}">🖼</button>`}</td>`
           : `<td colspan="6" style="color:#948a7d">não corrigido</td>`}</tr>`;
       }).join("")}</tbody></table></div>
     <p class="hint" style="margin-top:8px">✎ = alguma questão foi ajustada à mão na conferência. Para corrigir de novo, é só fotografar o cartão outra vez (substitui o anterior).</p>
@@ -746,7 +788,7 @@ async function verFoto(id, g) {
   im.onload = () => {
     const resp = String(c.marcadas || "").split("").map((L) => CorrecaoCore.LETRAS.indexOf(L));
     const gg = Object.assign({}, g, { respostas: { [c.fila || "A"]: c.gabaritoUsado || g.respostas[c.fila || "A"] } });
-    const det = CorrecaoCore.corrigir(resp, gg.respostas[c.fila || "A"], g.valores).detalhe;
+    const det = CorrecaoCore.corrigir(resp, gg.respostas[c.fila || "A"], g.valores, g.bonusBranco).detalhe;
     desenharSobreposicao(document.getElementById("fCanvas"), im, gg, resp, c.fila || "A", det);
   };
   im.src = c.foto;
@@ -762,7 +804,7 @@ async function recalcularCorrecoes(g) {
     for (const c of cors) {
       const fila = (g.filas || ["A"]).includes(c.fila) ? c.fila : "A";
       const resp = String(c.marcadas || "").split("").map((L) => CorrecaoCore.LETRAS.indexOf(L));
-      const r = CorrecaoCore.corrigir(resp, g.respostas[fila], g.valores);
+      const r = CorrecaoCore.corrigir(resp, g.respostas[fila], g.valores, g.bonusBranco);
       await fsSalvarDoc(c._id, { acertos: r.acertos, erros: r.erros, brancos: r.brancos, nota: r.nota, valorTotal: g.total, gabaritoUsado: g.respostas[fila], titulo: g.titulo, bimestre: g.bimestre, avaliacao: g.avaliacao },
         ["acertos", "erros", "brancos", "nota", "valorTotal", "gabaritoUsado", "titulo", "bimestre", "avaliacao"]);
       const turma = STATE.turmas[g.turma];
