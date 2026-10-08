@@ -8,12 +8,14 @@ Regras fixas:
 - SEM quadro de instruções.
 - Rodapé: frase de um filósofo, centralizada e em negrito, dentro da borda.
 
-Correção por foto no Diário (08/10/2026):
-- Cada folha leva no pé uma FAIXA DE RESPOSTAS com as bolinhas das questões daquela folha,
-  4 quadrados pretos nos cantos, o Nº do aluno (texto + código de quadradinhos) e um QR code
-  (gabarito, turma, nº, fila, folha e questões). Com isso o app junta as folhas de cada aluno.
-- A geometria da faixa é a mesma de `correcao-core.js` (FAIXA) no repositório DIARIO-IESN.
-  NÃO mude as medidas de um lado sem mudar do outro.
+PADRÃO OBRIGATÓRIO (08/10/2026) — CARTÃO-RESPOSTA em todas as avaliações:
+- Logo abaixo do cabeçalho e do título da 1ª FOLHA vai um CARTÃO-RESPOSTA com as bolinhas de
+  TODAS as questões. O aluno resolve a prova e depois passa as respostas para o cartão.
+- O cartão tem 4 quadrados pretos nos cantos, o Nº do aluno (texto + código de quadradinhos) e um
+  QR code (gabarito, turma, nº, fila, nº de questões). O Diário corrige fotografando só a 1ª folha.
+- Até 15 questões: cartão de 5 linhas; até 30: cartão de 10 linhas.
+- A geometria é a mesma de `correcao-core.js` (FAIXA / GEOMETRIAS.topo5 e topo10) no repositório
+  DIARIO-IESN. NÃO mude as medidas de um lado sem mudar do outro.
 - `gerar_turma` gera uma prova nominal por aluno (nome e nº do diário), o gabarito do professor
   e o JSON do gabarito para colar no app (aba Correção → Novo gabarito → Colar JSON).
 """
@@ -54,8 +56,16 @@ FAIXA = dict(
     colunas=[22, 58, 94], linhaY0=231, passoY=6.6, passoX=6.2, dxBolinha=9, raio=2.3, maxPorColuna=5,
     numX=133, codigo=dict(x=133, y=248, lado=2.2, passo=2.8, bits=9),
 )
-MAX_QUESTOES_POR_FOLHA = len(FAIXA["colunas"]) * FAIXA["maxPorColuna"]   # 15
-LIMITE_QUESTOES = H - (FAIXA["y"] - 5) * mm   # questões não descem abaixo disto (y do reportlab)
+TOPO_Y = 69                     # topo do cartão-resposta na 1ª folha (mm a partir do topo)
+LIMITE_QUESTOES = M + 1.7 * cm  # questões não descem abaixo disto (acima da frase do rodapé)
+
+
+def geom_cartao(linhas):
+    """Mesma faixa, posicionada abaixo do cabeçalho; 5 linhas (até 15 questões) ou 10 (até 30)."""
+    dy = TOPO_Y - FAIXA["y"]
+    h = FAIXA["h"] + (linhas - 5) * FAIXA["passoY"]
+    return dict(y=TOPO_Y, h=h, linhas=linhas, dy=dy,
+                cantos=[(17, TOPO_Y + 3), (193, TOPO_Y + 3), (193, TOPO_Y + h - 3), (17, TOPO_Y + h - 3)])
 
 
 def _y(mm_topo):
@@ -72,8 +82,8 @@ def bits_codigo(num, folha):
     return b
 
 
-def texto_qr(gab_id, turma, num, fila, folha, total, q_ini, q_fim):
-    return "|".join(str(v) for v in ["IESN2", gab_id, turma, num, fila or "A", folha, total, q_ini, q_fim])
+def texto_qr(gab_id, turma, num, fila, n, linhas):
+    return "|".join(str(v) for v in ["IESN3", gab_id, turma, num, fila or "A", n, linhas])
 
 
 def desenhar_qr(c, texto, x_mm, y_topo_mm, lado_mm):
@@ -85,29 +95,33 @@ def desenhar_qr(c, texto, x_mm, y_topo_mm, lado_mm):
     renderPDF.draw(d, c, x_mm * mm, _y(y_topo_mm + lado_mm))
 
 
-def faixa_respostas(c, info, k, corretas=None):
-    """info: gab_id, turma, num, fila, folha, total, q_ini, q_fim.
-    corretas: string do gabarito (versão do professor: pinta a certa em verde)."""
+def cartao_resposta(c, info, k, corretas=None):
+    """Cartão-resposta abaixo do cabeçalho da 1ª folha, com TODAS as questões.
+    info: gab_id, turma, num, fila, n.  corretas: gabarito (versão do professor: certa pintada de verde)."""
     F = FAIXA
+    n = info["n"]
+    if n > 30:
+        raise ValueError("O cartão-resposta comporta até 30 questões.")
+    G = geom_cartao(5 if n <= 15 else 10)
+    dy, linhas = G["dy"], G["linhas"]
     # moldura leve
     c.setStrokeColor(HexColor("#9A9A9A")); c.setLineWidth(0.6)
-    c.roundRect(F["x"] * mm, _y(F["y"] + F["h"]), F["w"] * mm, F["h"] * mm, 2 * mm, stroke=1, fill=0)
+    c.roundRect(F["x"] * mm, _y(G["y"] + G["h"]), F["w"] * mm, G["h"] * mm, 2 * mm, stroke=1, fill=0)
     # quadrados dos cantos
     c.setFillColor(black)
     m = F["marca"]
-    for (cx, cy) in F["cantos"]:
+    for (cx, cy) in G["cantos"]:
         c.rect((cx - m / 2) * mm, _y(cy + m / 2), m * mm, m * mm, stroke=0, fill=1)
     # título
     c.setFont("Helvetica-Bold", 7.5)
-    c.drawString(22 * mm, _y(221.8), "RESPOSTAS DESTA FOLHA — pinte toda a bolinha. Só vale o que for marcado aqui.")
-    # questões
-    q_ini, q_fim = info["q_ini"], info["q_fim"]
+    c.drawString(22 * mm, _y(221.8 + dy), "CARTÃO-RESPOSTA — resolva a prova e passe aqui suas respostas.")
+    c.setFont("Helvetica", 6.8)
+    c.drawString(22 * mm, _y(225 + dy), "Pinte toda a bolinha, com caneta azul ou preta. Só vale o que estiver neste cartão.")
     usadas = set()
-    for q in range(q_ini, q_fim + 1):
-        i = q - q_ini
-        col, lin = divmod(i, F["maxPorColuna"])
+    for q in range(1, n + 1):
+        col, lin = divmod(q - 1, linhas)
         x0 = F["colunas"][col]
-        y = F["linhaY0"] + lin * F["passoY"]
+        y = F["linhaY0"] + dy + lin * F["passoY"] + 1.5
         usadas.add(col)
         c.setFillColor(black); c.setFont("Helvetica-Bold", 8)
         c.drawString((x0 + 0.5) * mm, _y(y + 1.2), f"{q:02d}")
@@ -120,33 +134,34 @@ def faixa_respostas(c, info, k, corretas=None):
                 c.circle(bx * mm, _y(y), F["raio"] * mm, stroke=1, fill=1)
             else:
                 c.circle(bx * mm, _y(y), F["raio"] * mm, stroke=1, fill=0)
-    # letras sobre cada coluna usada
     c.setFillColor(black); c.setFont("Helvetica-Bold", 7)
     for col in usadas:
         x0 = F["colunas"][col]
         for j in range(k):
-            c.drawCentredString((x0 + F["dxBolinha"] + j * F["passoX"]) * mm, _y(227), LETRAS[j])
-    # nº do aluno, folha e fila
+            c.drawCentredString((x0 + F["dxBolinha"] + j * F["passoX"]) * mm, _y(228.6 + dy), LETRAS[j])
+    # nº do aluno e fila
     c.setFont("Helvetica-Bold", 13)
-    c.drawString(F["numX"] * mm, _y(233), f"Nº {info['num']:02d}")
+    c.drawString(F["numX"] * mm, _y(233 + dy), f"Nº {info['num']:02d}")
     c.setFont("Helvetica", 8)
-    c.drawString(F["numX"] * mm, _y(238.5), f"FOLHA {info['folha']}/{info['total']}")
-    c.drawString(F["numX"] * mm, _y(243.5), f"FILA {info.get('fila') or 'A'}")
+    c.drawString(F["numX"] * mm, _y(238.5 + dy), f"QUESTÕES 01–{n:02d}")
+    c.drawString(F["numX"] * mm, _y(243.5 + dy), f"FILA {info.get('fila') or 'A'}")
     # código de quadradinhos (nº + folha + paridade)
     C = F["codigo"]
-    for i, b in enumerate(bits_codigo(info["num"], info["folha"])):
+    for i, b in enumerate(bits_codigo(info["num"], 1)):
         x = C["x"] + i * C["passo"]
+        yq = C["y"] + dy
         if b:
             c.setFillColor(black)
-            c.rect(x * mm, _y(C["y"] + C["lado"]), C["lado"] * mm, C["lado"] * mm, stroke=0, fill=1)
+            c.rect(x * mm, _y(yq + C["lado"]), C["lado"] * mm, C["lado"] * mm, stroke=0, fill=1)
         else:
             c.setStrokeColor(HexColor("#C8C8C8")); c.setLineWidth(0.3)
-            c.rect(x * mm, _y(C["y"] + C["lado"]), C["lado"] * mm, C["lado"] * mm, stroke=1, fill=0)
+            c.rect(x * mm, _y(yq + C["lado"]), C["lado"] * mm, C["lado"] * mm, stroke=1, fill=0)
     # QR
     c.setFillColor(black)
     Q = F["qr"]
-    desenhar_qr(c, texto_qr(info["gab_id"], info["turma"], info["num"], info.get("fila"), info["folha"],
-                            info["total"], q_ini, q_fim), Q["x"], Q["y"], Q["lado"])
+    desenhar_qr(c, texto_qr(info["gab_id"], info["turma"], info["num"], info.get("fila"), n, linhas),
+                Q["x"], Q["y"] + dy, Q["lado"])
+    return _y(G["y"] + G["h"]) - 0.6 * cm   # y (reportlab) onde as questões podem começar
 
 
 # ---------------- Cabeçalho / rodapé ----------------
@@ -228,14 +243,13 @@ def c_stringwidth(t, f, s):
     return stringWidth(t, f, s)
 
 
-def paginar(lista, y_inicio):
+def paginar(lista, y_primeira, y_demais):
     """Divide as questões em folhas. Retorna [(q_ini, q_fim), ...] (1-based)."""
-    folhas, ini, y = [], 1, y_inicio
+    folhas, ini, y = [], 1, y_primeira
     for i, q in enumerate(lista, 1):
         h = altura_questao(q)
-        cheia = (i - ini) >= MAX_QUESTOES_POR_FOLHA
-        if (y - h < LIMITE_QUESTOES or cheia) and i > ini:
-            folhas.append((ini, i - 1)); ini = i; y = y_inicio
+        if y - h < LIMITE_QUESTOES and i > ini:
+            folhas.append((ini, i - 1)); ini = i; y = y_demais
         y -= h
     folhas.append((ini, len(lista)))
     return folhas
@@ -279,7 +293,7 @@ def gabarito_json(gab_id, titulo, turma, bimestre, avaliacao, lista, folhas):
     k = max(len(q["alternativas"]) for q in lista)
     return {
         "id": gab_id, "titulo": titulo, "turma": turma, "bimestre": bimestre, "avaliacao": avaliacao,
-        "alternativas": k, "paginas": [list(f) for f in folhas],
+        "alternativas": k, "folhas": len(folhas),
         "questoes": [{"A": LETRAS[q["correta"]], "valor": _valor_num(q["valor"])} for q in lista],
     }
 
@@ -289,20 +303,22 @@ def gerar_turma(prefixo, serie, turma, titulo, lista, alunos, gab_id, bimestre, 
     <prefixo>_GABARITO.pdf (professor) e <prefixo>_gabarito.json (para o app)."""
     frase = frase or random.choice(FRASES)
     k = max(len(q["alternativas"]) for q in lista)
-    # mede a 1ª folha para saber onde as questões começam
+    n = len(lista)
+    # mede onde as questões começam: 1ª folha abaixo do cartão-resposta, demais abaixo do cabeçalho
     tmp = canvas.Canvas(os.devnull, pagesize=A4)
-    y0 = cabecalho(tmp, serie, titulo)
-    folhas = paginar(lista, y0)
+    y_demais = cabecalho(tmp, serie, titulo)
+    y_primeira = cartao_resposta(tmp, dict(gab_id=gab_id, turma=turma, num=1, n=n), k)
+    folhas = paginar(lista, y_primeira, y_demais)
     corretas = "".join(LETRAS[q["correta"]] for q in lista)
 
     def prova(c, aluno, gabarito):
         for f, (qi, qf) in enumerate(folhas, 1):
             borda(c)
             y = cabecalho(c, serie, titulo + (" — GABARITO" if gabarito else ""), aluno)
+            if f == 1:
+                y = cartao_resposta(c, dict(gab_id=gab_id, turma=turma, num=aluno["num"], fila=aluno.get("fila", fila), n=n),
+                                    k, corretas if gabarito else None)
             desenhar_questoes(c, y, lista, qi, qf, gabarito)
-            faixa_respostas(c, dict(gab_id=gab_id, turma=turma, num=aluno["num"], fila=aluno.get("fila", fila),
-                                    folha=f, total=len(folhas), q_ini=qi, q_fim=qf), k,
-                            corretas if gabarito else None)
             rodape(c, frase)
             c.showPage()
 

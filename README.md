@@ -61,7 +61,14 @@ Aba **Correção** (e botões **📷 Corrigir prova** no topo e na aba Notas).
 4. **📊 Resultados**: quem já foi corrigido, acertos/erros/nota e a foto de cada cartão.
    Editar o gabarito (ex.: anular uma questão) oferece recalcular as notas já lançadas.
 
-**Provas de várias folhas (faixa de respostas):** o gerador de provas (`modelo/iesn_modelo.py`, no
+**PADRÃO (desde 08/10/2026): cartão-resposta abaixo do cabeçalho da 1ª folha.** O gerador de provas
+(`modelo/iesn_modelo.py`, `gerar_turma`) põe, logo abaixo do cabeçalho e do título da 1ª folha, um cartão
+com as bolinhas de **todas** as questões (5 linhas = até 15 questões; 10 linhas = até 30), 4 quadrados
+nos cantos, o Nº do aluno (texto + código de quadradinhos) e um QR `IESN3|gabarito|turma|nº|fila|n|linhas`.
+O aluno resolve a prova e passa as respostas para o cartão; para corrigir basta fotografar **a 1ª folha**.
+Geometria: `GEOMETRIAS.topo5`/`topo10` em `correcao-core.js` = `geom_cartao` em `iesn_modelo.py`.
+
+**Formato anterior — faixa no pé de cada folha (ainda aceito):** o gerador de provas (`modelo/iesn_modelo.py`, no
 Projeto do Claude, função `gerar_turma`) põe no pé de **cada folha** uma faixa com as bolinhas das
 questões daquela folha, 4 quadrados nos cantos, o **Nº do aluno** (texto + código de quadradinhos) e um
 QR (gabarito, turma, nº, fila, folha, questões). Fotografe cada folha, em qualquer ordem: o app guarda as

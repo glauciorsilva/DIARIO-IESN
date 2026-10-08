@@ -206,7 +206,7 @@ function renderCorrecao() {
   main.innerHTML = `
     <div class="card">
       <h3>Correção por foto — ${t.nome}</h3>
-      <p class="hint">1) Cadastre o gabarito (ou cole o JSON que vem com a prova) · 2) Use a prova com <b>faixa de respostas</b> no pé de cada folha, ou imprima os cartões-resposta · 3) Toque em <b>Corrigir por foto</b> e fotografe <b>cada folha</b> — em qualquer ordem. O app reconhece o aluno pelo <b>nº</b> (QR ou código da faixa), junta as folhas, confere com o gabarito, guarda as fotos, acertos e erros no Firebase e lança a nota na aba Notas.</p>
+      <p class="hint">1) Cadastre o gabarito (ou cole o JSON que vem com a prova) · 2) Aplique a prova com o <b>cartão-resposta abaixo do cabeçalho da 1ª folha</b> (padrão do gerador de provas) · 3) Toque em <b>Corrigir por foto</b> e fotografe <b>só a 1ª folha</b> de cada aluno. O app reconhece o aluno pelo <b>nº</b> (QR ou código de quadradinhos do cartão), confere com o gabarito, guarda as fotos, acertos e erros no Firebase e lança a nota na aba Notas.</p>
       ${htmlColetaPendente()}
       ${pend.length ? `<div class="corr-aviso">⏳ ${pend.length} correção(ões) aguardando envio ao Firebase (as notas já estão no diário). <button class="btn btn-sm" id="corrReenviar">Enviar agora</button></div>` : ""}
       <div class="corr-hero">
@@ -553,7 +553,8 @@ function faixaDaFolha(g, folha, total) {
 function totalFolhas(g, qr) { return (qr && qr.total) || (g && g.paginas ? g.paginas.length : 1); }
 
 function listaDaPagina(g, pg) {
-  return pg.geom === "faixa" ? CorrecaoCore.layoutFaixa(pg.qIni, pg.qFim, g.k) : CorrecaoCore.layoutQuestoes(g.n, g.k).lista;
+  if (!pg.geom || pg.geom === "cartao") return CorrecaoCore.layoutQuestoes(g.n, g.k).lista;
+  return CorrecaoCore.layoutFaixa(pg.qIni, pg.ehTopo ? g.n : pg.qFim, g.k, CorrecaoCore.GEOMETRIAS[pg.geom] || CorrecaoCore.GEOMETRIAS.faixa);
 }
 
 async function processarFoto(file) {
@@ -586,10 +587,10 @@ async function processarFoto(file) {
     // faixa de respostas de uma folha da prova
     mostrarCarregando(null);
     const folha = {
-      geom: "faixa", folha: qr.folha || 1, qIni: qr.qIni || null, qFim: qr.qFim || null,
+      geom: loc.geom, ehTopo: /^topo/.test(loc.geom), folha: qr.folha || 1, qIni: qr.qIni || null, qFim: qr.qFim || null,
       canvas: fotoCanvas, prep, H: loc.H
     };
-    let info = { gabId: gab ? gab.id : null, turma: gab ? gab.turma : (qr.turma || TURMA_ATUAL), num: qr.num || null, fila: qr.fila || "A", total: qr.total || null };
+    let info = { gabId: gab ? gab.id : null, turma: gab ? gab.turma : (qr.turma || TURMA_ATUAL), num: qr.num || null, fila: qr.fila || "A", total: folha.ehTopo ? 1 : (qr.total || null) };
     if (!info.gabId || !info.num) {
       // sem QR: o nº veio do código de quadradinhos da faixa — sugere a prova que já espera esta folha deste nº
       if (!info.gabId) {
@@ -602,8 +603,9 @@ async function processarFoto(file) {
       if (!info) return;
     }
     const g = GABARITOS[info.gabId];
-    if (!folha.qIni) { const f = faixaDaFolha(g, folha.folha, info.total); folha.qIni = f[0]; folha.qFim = f[1]; }
-    folha.leitura = CorrecaoCore.lerBolinhasLista(prep, loc.H, CorrecaoCore.layoutFaixa(folha.qIni, folha.qFim, g.k));
+    if (folha.ehTopo) { folha.folha = 1; folha.qIni = 1; folha.qFim = g.n; info.total = 1; }
+    else if (!folha.qIni) { const f = faixaDaFolha(g, folha.folha, info.total); folha.qIni = f[0]; folha.qFim = f[1]; }
+    folha.leitura = CorrecaoCore.lerBolinhasLista(prep, loc.H, listaDaPagina(g, folha));
     adicionarFolhaColetada(info, folha);
   } catch (e) {
     mostrarCarregando(null);
@@ -625,7 +627,7 @@ function identificarFolha(folha, info, titulo) {
         <div class="rev-campos">
           <select id="iGab">${gabs.map((x) => `<option value="${x.id}" ${x.id === info.gabId ? "selected" : ""}>${escapeHtml((STATE.turmas[x.turma] || {}).nome || x.turma)} · ${escapeHtml(x.titulo)}</option>`).join("")}</select>
           <select id="iAluno"><option value="">— nº / aluno —</option>${turma.alunos.map((a) => `<option value="${a.num}" ${a.num === info.num ? "selected" : ""}>${a.num}. ${escapeHtml(a.nome)}</option>`).join("")}</select>
-          <select id="iFolha">${Array.from({ length: Math.max(total, folha.folha) }, (_, i) => `<option value="${i + 1}" ${i + 1 === folha.folha ? "selected" : ""}>Folha ${i + 1}</option>`).join("")}</select>
+          <select id="iFolha" ${folha.ehTopo ? 'style="display:none"' : ""}>${Array.from({ length: Math.max(total, folha.folha) }, (_, i) => `<option value="${i + 1}" ${i + 1 === folha.folha ? "selected" : ""}>Folha ${i + 1}</option>`).join("")}</select>
         </div>
         <canvas id="iCanvas" style="width:100%;max-width:520px;border:1px solid var(--line);border-radius:8px"></canvas>
         <div class="modal-actions"><button class="btn" id="iCancelar">Cancelar</button><button class="btn btn-primary" id="iOk">Continuar</button></div>`;
@@ -637,7 +639,7 @@ function identificarFolha(folha, info, titulo) {
       document.getElementById("iCancelar").addEventListener("click", () => { ov.remove(); ok(null); });
       document.getElementById("iOk").addEventListener("click", () => {
         if (!info.gabId || !info.num) { alert("Escolha o gabarito e o nº do aluno."); return; }
-        info.turma = GABARITOS[info.gabId].turma; info.total = info.total || totalFolhas(GABARITOS[info.gabId], null);
+        info.turma = GABARITOS[info.gabId].turma; info.total = folha.ehTopo ? 1 : (info.total || totalFolhas(GABARITOS[info.gabId], null));
         folha.qIni = null; folha.qFim = null;
         ov.remove(); ok(info);
       });
@@ -654,7 +656,7 @@ function adicionarFolhaColetada(info, folha) {
   const item = col[k] || { gabId: g.id, turma: g.turma, num: info.num, fila: info.fila, total, folhas: {} };
   item.total = Math.max(item.total || 1, total);
   item.fila = info.fila || item.fila;
-  item.folhas[folha.folha] = { qIni: folha.qIni, qFim: folha.qFim, leitura: folha.leitura, foto: folha.canvas.toDataURL("image/jpeg", 0.6) };
+  item.folhas[folha.folha] = { geom: folha.geom, ehTopo: !!folha.ehTopo, qIni: folha.qIni, qFim: folha.qFim, leitura: folha.leitura, foto: folha.canvas.toDataURL("image/jpeg", 0.6) };
   PREPS[k + "|" + folha.folha] = { prep: folha.prep, H: folha.H, canvas: folha.canvas };
   col[k] = item; gravarColeta();
   const faltam = [];
@@ -686,11 +688,18 @@ function abrirConferenciaColeta(k, aviso) {
     const fo = item.folhas[f];
     (fo.leitura || []).forEach((r) => { if (r.q >= 1 && r.q <= g.n) leitura[r.q - 1] = r; });
     const mem = PREPS[k + "|" + f];
-    paginas.push({ folha: f, geom: "faixa", qIni: fo.qIni, qFim: fo.qFim, foto: fo.foto, canvas: mem ? mem.canvas : null, prep: mem ? mem.prep : null, H: mem ? mem.H : null });
+    paginas.push({ folha: f, geom: fo.geom || "faixa", ehTopo: !!fo.ehTopo, qIni: fo.qIni, qFim: fo.qFim, foto: fo.foto, canvas: mem ? mem.canvas : null, prep: mem ? mem.prep : null, H: mem ? mem.H : null });
   });
   CORR_ATUAL = { paginas, leitura, respostas: leitura.map((r) => r.marcada), gabId: g.id, turma: item.turma, num: item.num, fila: item.fila || "A", chaveColeta: k };
   const faltando = leitura.filter((r) => r.status === "faltando").map((r) => r.q);
   abrirRevisao(aviso || (faltando.length ? `Questões sem folha fotografada: ${faltando.join(", ")} (contam como em branco).` : ""));
+}
+
+function coletaIncompleta() {
+  const it = CORR_ATUAL && CORR_ATUAL.chaveColeta ? lerColeta()[CORR_ATUAL.chaveColeta] : null;
+  if (!it) return false;
+  for (let f = 1; f <= (it.total || 1); f++) if (!it.folhas[f]) return true;
+  return false;
 }
 
 function lerComGabarito() {
@@ -800,7 +809,7 @@ function abrirRevisao(aviso) {
       </div>`}
       <p class="hint" id="rErro" style="color:var(--red);min-height:18px;margin:8px 0 0"></p>
       <div class="modal-actions" style="flex-wrap:wrap">
-        <button class="btn" id="rCancelar">${CORR_ATUAL.chaveColeta ? "Fechar (guardar)" : "Cancelar"}</button>
+        <button class="btn" id="rCancelar">${coletaIncompleta() ? "Fechar (guardar)" : "Cancelar"}</button>
         <button class="btn" id="rOutra">📷 Tirar outra foto</button>
         ${g ? `<button class="btn btn-primary" id="rSalvar">Salvar e lançar nota</button>` : ""}
       </div>`;
@@ -827,7 +836,11 @@ function abrirRevisao(aviso) {
       CORR_ATUAL.editadaManual = true;
       desenhar();
     }));
-    document.getElementById("rCancelar").addEventListener("click", () => ov.remove());
+    document.getElementById("rCancelar").addEventListener("click", () => {
+      // prova completa (ex.: cartão da 1ª folha) não fica "esperando folha" depois de cancelar
+      if (CORR_ATUAL.chaveColeta && !coletaIncompleta()) { const col = lerColeta(); delete col[CORR_ATUAL.chaveColeta]; gravarColeta(); renderAll(); }
+      ov.remove();
+    });
     document.getElementById("rOutra").addEventListener("click", () => { ov.remove(); abrirCamera(); });
     const bs = document.getElementById("rSalvar");
     if (bs) bs.addEventListener("click", () => salvarCorrecao(ov));
@@ -887,7 +900,7 @@ async function salvarCorrecao(ov) {
     corrigidoEm: new Date().toISOString(),
     foto: fotosAtuais[0] || null,
     fotos: fotosAtuais,
-    paginas: (CORR_ATUAL.paginas || []).map((pg) => ({ folha: pg.folha, geom: pg.geom, qIni: pg.qIni, qFim: pg.qFim })),
+    paginas: (CORR_ATUAL.paginas || []).map((pg) => ({ folha: pg.folha, geom: pg.geom, ehTopo: !!pg.ehTopo, qIni: pg.qIni, qFim: pg.qFim })),
     origemLeitura: fotosAtuais.length ? "foto" : "digitada"
   };
   let enviado = true;

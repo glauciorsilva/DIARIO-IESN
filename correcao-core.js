@@ -22,6 +22,7 @@
   const LETRAS = "ABCDE";
   const PREFIXO_QR = "IESN1";   // cartão-resposta de folha inteira
   const PREFIXO_QR2 = "IESN2";  // faixa de respostas no pé de cada folha da prova
+  const PREFIXO_QR3 = "IESN3";  // cartão-resposta abaixo do cabeçalho da 1ª folha (padrão)
 
   // ---------------- Faixa de respostas (prova de várias folhas) ----------------
   // Desenhada pelo gerador de provas (modelo/iesn_modelo.py) no pé de CADA folha:
@@ -35,16 +36,34 @@
     colunas: [22, 58, 94], linhaY0: 231, passoY: 6.6, passoX: 6.2, dxBolinha: 9, raio: 2.3, maxPorColuna: 5,
     numX: 133, codigo: { x: 133, y: 248, lado: 2.2, passo: 2.8, bits: 9 }
   };
+  // A mesma faixa serve em dois lugares (mesmo desenho, só muda a altura na folha):
+  //  • "topo"  = CARTÃO-RESPOSTA da prova, logo abaixo do cabeçalho da 1ª folha, com TODAS as questões
+  //             (padrão desde 08/10/2026; 5 linhas = até 15 questões, 10 linhas = até 30)
+  //  • "faixa" = faixa no pé de cada folha (formato anterior, ainda aceito)
+  const TOPO_Y = 69;
+  function criarGeomFaixa(nome, y0, linhas, desceLinhas) {
+    const h = 52 + (linhas - 5) * FAIXA.passoY, dy = y0 - FAIXA.y;
+    return {
+      nome, forma: "faixa" + linhas, y0, linhas, h, marca: FAIXA.marca, margemQR: 2.5,
+      cantos: [{ x: 17, y: y0 + 3 }, { x: 193, y: y0 + 3 }, { x: 193, y: y0 + h - 3 }, { x: 17, y: y0 + h - 3 }],
+      qr: { x: FAIXA.qr.x, y: FAIXA.qr.y + dy, lado: FAIXA.qr.lado },
+      colunas: FAIXA.colunas, linhaY0: FAIXA.linhaY0 + dy + (desceLinhas || 0), maxPorColuna: linhas,
+      codigo: Object.assign({}, FAIXA.codigo, { y: FAIXA.codigo.y + dy })
+    };
+  }
   const GEOMETRIAS = {
-    cartao: { nome: "cartao", cantos: null, marca: 10, qr: null, margemQR: 5 }, // completado abaixo
-    faixa: { nome: "faixa", cantos: FAIXA.cantos, marca: FAIXA.marca, qr: FAIXA.qr, margemQR: 2.5 }
+    cartao: { nome: "cartao", forma: "cartao", cantos: null, marca: 10, qr: null, margemQR: 5 }, // completado abaixo
+    faixa: criarGeomFaixa("faixa", FAIXA.y, 5),
+    topo5: criarGeomFaixa("topo5", TOPO_Y, 5, 1.5),   // cartão tem 2 linhas de instrução: bolinhas 1,5 mm abaixo
+    topo10: criarGeomFaixa("topo10", TOPO_Y, 10, 1.5)
   };
 
-  function layoutFaixa(qIni, qFim, k) {
+  function layoutFaixa(qIni, qFim, k, geom) {
+    geom = geom || GEOMETRIAS.faixa;
     const lista = [];
     for (let q = qIni; q <= qFim; q++) {
-      const i = q - qIni, c = Math.floor(i / FAIXA.maxPorColuna), lin = i % FAIXA.maxPorColuna;
-      const x0 = FAIXA.colunas[c], y = FAIXA.linhaY0 + lin * FAIXA.passoY;
+      const i = q - qIni, c = Math.floor(i / geom.maxPorColuna), lin = i % geom.maxPorColuna;
+      const x0 = geom.colunas[c], y = geom.linhaY0 + lin * FAIXA.passoY;
       const bolinhas = [];
       for (let j = 0; j < k; j++) bolinhas.push({ x: x0 + FAIXA.dxBolinha + j * FAIXA.passoX, y });
       lista.push({ q, x0, y, bolinhas, raio: FAIXA.raio });
@@ -93,14 +112,21 @@
   }
   function lerTextoQR(txt) {
     const p = String(txt || "").split("|");
-    if (p.length < 5 || (p[0] !== PREFIXO_QR && p[0] !== PREFIXO_QR2)) return null;
+    if (p.length < 5 || (p[0] !== PREFIXO_QR && p[0] !== PREFIXO_QR2 && p[0] !== PREFIXO_QR3)) return null;
     const num = Number(p[3]);
     if (!p[1] || !p[2] || !isFinite(num)) return null;
     const info = { tipo: "cartao", gabId: p[1], turma: p[2], num, fila: p[4] || "A" };
+    if (p[0] === PREFIXO_QR3) { // IESN3|gab|turma|num|fila|n|linhas
+      const n = Number(p[5]) || 1, linhas = Number(p[6]) === 10 ? 10 : 5;
+      Object.assign(info, { tipo: "topo" + linhas, folha: 1, total: 1, qIni: 1, qFim: n });
+    }
     if (p[0] === PREFIXO_QR2) {
       Object.assign(info, { tipo: "faixa", folha: Number(p[5]) || 1, total: Number(p[6]) || 1, qIni: Number(p[7]) || 1, qFim: Number(p[8]) || 1 });
     }
     return info;
+  }
+  function textoQRTopo(info) {
+    return [PREFIXO_QR3, info.gabId, info.turma, info.num, info.fila || "A", info.n, info.linhas].join("|");
   }
   function textoQRFaixa(info) {
     return [PREFIXO_QR2, info.gabId, info.turma, info.num, info.fila || "A", info.folha, info.total, info.qIni, info.qFim].join("|");
@@ -361,8 +387,8 @@
   }
 
   // Lê o código de quadradinhos da faixa (nº do aluno + folha), validando a paridade
-  function lerCodigo(prep, H) {
-    const C = FAIXA.codigo, bits = [];
+  function lerCodigo(prep, H, geom) {
+    const C = (geom || GEOMETRIAS.faixa).codigo, bits = [];
     for (let i = 0; i < C.bits; i++) {
       const cx = C.x + i * C.passo + C.lado / 2, cy = C.y + C.lado / 2;
       bits.push(medirBolinha(prep, H, cx, cy, C.lado / 2) > 0.5 ? 1 : 0);
@@ -378,8 +404,12 @@
   // Acha a folha (faixa de respostas ou cartão inteiro), a orientação certa e lê o QR.
   // Retorna { geom: "faixa"|"cartao", H, cantos, qr, rotacao }  (qr pode vir só com {num, folha})
   function localizarFolha(img, prep, jsQR) {
+    // uma busca por forma de retângulo; topo5 e faixa têm a mesma forma (só muda a altura na folha)
+    const formas = [GEOMETRIAS.topo5, GEOMETRIAS.topo10, GEOMETRIAS.cartao];
+    const geomDoQR = (info) => GEOMETRIAS[info.tipo] || null;
+    const ajustar = (geomCerta, cantos, r) => homografia(geomCerta.cantos, [0, 1, 2, 3].map((i) => cantos[(i + r) % 4]));
     const achados = [];
-    for (const geom of [GEOMETRIAS.faixa, GEOMETRIAS.cartao]) {
+    for (const geom of formas) {
       let cantos;
       try { cantos = encontrarCantos(prep, geom); } catch (e) { continue; }
       const hips = hipoteses(cantos, geom);
@@ -389,42 +419,60 @@
           const rec = recortarQR(img, hp.H, 360, geom);
           const res = jsQR(rec.data, rec.width, rec.height, { inversionAttempts: "dontInvert" });
           const info = res && lerTextoQR(res.data);
-          if (info && info.tipo === geom.nome && emPe(res)) return { geom: geom.nome, H: hp.H, cantos, qr: info, rotacao: hp.r };
+          const certa = info && geomDoQR(info);
+          if (certa && certa.forma === geom.forma && emPe(res)) {
+            return { geom: certa.nome, H: certa === geom ? hp.H : ajustar(certa, cantos, hp.r), cantos, qr: info, rotacao: hp.r };
+          }
         }
       }
     }
-    // QR procurado na foto inteira (decide a geometria pelo prefixo e a rotação pela posição)
+    // QR procurado na foto inteira (decide a forma pelo prefixo e a rotação pela posição)
     if (jsQR) {
       const res = jsQR(img.data, img.width, img.height, { inversionAttempts: "dontInvert" });
       const info = res && lerTextoQR(res.data);
-      const ach = info && achados.find((a) => a.geom.nome === info.tipo);
+      const certa = info && geomDoQR(info);
+      const ach = certa && achados.find((a) => a.geom.forma === certa.forma);
       if (ach) {
-        const lc = res.location, Q = ach.geom.qr;
+        const lc = res.location, Q = certa.qr;
         const cq = { x: (lc.topLeftCorner.x + lc.bottomRightCorner.x) / 2, y: (lc.topLeftCorner.y + lc.bottomRightCorner.y) / 2 };
         let melhor = null;
-        ach.hips.forEach((hp) => {
-          const p = aplicarH(hp.H, Q.x + Q.lado / 2, Q.y + Q.lado / 2);
+        for (let r = 0; r < 4; r++) {
+          const H = ajustar(certa, ach.cantos, r);
+          const p = aplicarH(H, Q.x + Q.lado / 2, Q.y + Q.lado / 2);
           const dd = dist(p, cq);
-          if (!melhor || dd < melhor.dd) melhor = { dd, hp };
-        });
-        return { geom: ach.geom.nome, H: melhor.hp.H, cantos: ach.cantos, qr: info, rotacao: melhor.hp.r };
+          if (!melhor || dd < melhor.dd) melhor = { dd, H, r };
+        }
+        return { geom: certa.nome, H: melhor.H, cantos: ach.cantos, qr: info, rotacao: melhor.r };
       }
     }
-    // sem QR na faixa: número do aluno pelo código de quadradinhos
-    const fx = achados.find((a) => a.geom.nome === "faixa");
-    if (fx) {
-      for (const hp of fx.hips) {
-        const cod = lerCodigo(prep, hp.H);
-        if (cod) return { geom: "faixa", H: hp.H, cantos: fx.cantos, qr: { tipo: "faixa", parcial: true, num: cod.num, folha: cod.folha }, rotacao: hp.r };
+    // sem QR: nº do aluno pelo código de quadradinhos (vale para o cartão do topo e para a faixa)
+    for (const ach of achados.filter((a) => a.geom.forma !== "cartao")) {
+      for (const hp of ach.hips) {
+        const cod = lerCodigo(prep, hp.H, ach.geom);
+        if (!cod) continue;
+        // cartão do topo ou faixa do pé? (mesma forma) — vê de que lado estão os contornos das bolinhas
+        let geom = ach.geom, H = hp.H;
+        if (ach.geom.forma === "faixa5") {
+          const opcoes = [GEOMETRIAS.topo5, GEOMETRIAS.faixa].map((g) => {
+            const Hg = g === ach.geom ? hp.H : ajustar(g, ach.cantos, hp.r);
+            const q1 = layoutFaixa(1, 1, 4, g)[0];
+            const nota = q1.bolinhas.reduce((acc, bo) => acc + medirAnel(prep, Hg, bo.x, bo.y, q1.raio), 0);
+            return { g, Hg, nota };
+          }).sort((x, y) => y.nota - x.nota);
+          geom = cod.folha > 1 ? GEOMETRIAS.faixa : opcoes[0].g;
+          H = (opcoes.find((o) => o.g === geom) || opcoes[0]).Hg;
+        }
+        return { geom: geom.nome, H, cantos: ach.cantos, qr: { tipo: geom.nome, parcial: true, num: cod.num, folha: cod.folha }, rotacao: hp.r };
       }
     }
-    const ct = achados.find((a) => a.geom.nome === "cartao") || fx;
-    if (!ct) throw new Error("Não encontrei os quadrados pretos da folha. Fotografe a folha inteira, de cima e com boa luz.");
+    const ct = achados.find((a) => a.geom.forma === "cartao") || achados[0];
+    if (!ct) throw new Error("Não encontrei os quadrados pretos do cartão-resposta. Fotografe a 1ª folha inteira, de cima e com boa luz.");
     // sem QR: assume a folha em pé (canto superior esquerdo = mais perto do topo-esquerda da foto)
     let r0 = 0, menor = Infinity;
     ct.cantos.forEach((c, i) => { if (c.x + c.y < menor) { menor = c.x + c.y; r0 = i; } });
     return { geom: ct.geom.nome, H: ct.hips[r0].H, cantos: ct.cantos, qr: null, rotacao: r0 };
   }
+
   // ---------------- Bolinhas ----------------
   const LIMIAR_MARCADA = 0.28, LIMIAR_DUVIDA = 0.12;
 
@@ -440,6 +488,18 @@
       if (xi >= 0 && yi >= 0 && xi < prep.w && yi < prep.h && prep.bin[yi * prep.w + xi]) escuro++;
     }
     return total ? escuro / total : 0;
+  }
+
+  // quanto do contorno impresso de uma bolinha aparece (para distinguir posições parecidas)
+  function medirAnel(prep, H, cx, cy, raio) {
+    let escuro = 0, total = 0;
+    for (let t = 0; t < 24; t++) {
+      const a = t / 24 * Math.PI * 2, p = aplicarH(H, cx + Math.cos(a) * raio, cy + Math.sin(a) * raio);
+      const xi = Math.round(p.x), yi = Math.round(p.y);
+      total++;
+      if (xi >= 0 && yi >= 0 && xi < prep.w && yi < prep.h && prep.bin[yi * prep.w + xi]) escuro++;
+    }
+    return escuro / total;
   }
 
   function lerBolinhas(prep, H, n, k) {
@@ -479,7 +539,7 @@
 
   const API = {
     PAG, CANTOS, QR, GRADE, LETRAS, FRASES, LIMIAR_MARCADA, LIMIAR_DUVIDA,
-    FAIXA, GEOMETRIAS, layoutQuestoes, layoutFaixa, bitsCodigo, textoQR, textoQRFaixa, lerTextoQR, desenharCartoes,
+    FAIXA, TOPO_Y, GEOMETRIAS, criarGeomFaixa, layoutQuestoes, layoutFaixa, bitsCodigo, textoQR, textoQRFaixa, textoQRTopo, lerTextoQR, desenharCartoes,
     prepararImagem, encontrarCantos, homografia, aplicarH, localizarFolha, recortarQR, lerCodigo,
     lerBolinhas, lerBolinhasLista, corrigir
   };
