@@ -1,0 +1,399 @@
+/* =====================================================================
+   CORREÇÃO POR FOTO — núcleo (sem tela)
+   Instituto de Educação Silva Nascimento — Prof. Glaucio Rafael
+
+   - Desenha o cartão-resposta nominal (A4, jsPDF) com 4 quadrados pretos
+     nos cantos e um QR code com: gabarito, turma, nº do aluno e fila.
+   - Lê a foto: acha os 4 quadrados, corrige a perspectiva (homografia),
+     lê o QR e mede o quanto cada bolinha está pintada.
+   Funciona no navegador (window.CorrecaoCore) e no Node (testes).
+   ===================================================================== */
+(function (raiz) {
+  "use strict";
+
+  // ---------------- Layout do cartão (milímetros) ----------------
+  const PAG = { w: 210, h: 297 };
+  const MARCA = 10; // lado dos quadrados pretos
+  const CANTOS = [ // centros, no sentido horário: sup.esq, sup.dir, inf.dir, inf.esq
+    { x: 15, y: 15 }, { x: 195, y: 15 }, { x: 195, y: 282 }, { x: 15, y: 282 }
+  ];
+  const QR = { x: 162, y: 24, lado: 30 };
+  const GRADE = { y0: 86, passoY: 7.4, passoX: 9, raio: 2.6, maxPorColuna: 25 };
+  const LETRAS = "ABCDE";
+  const PREFIXO_QR = "IESN1";
+
+  const FRASES = [
+    ["A educação tem raízes amargas, mas os seus frutos são doces.", "Aristóteles"],
+    ["Só sei que nada sei.", "Sócrates"],
+    ["Ousa saber!", "Immanuel Kant"],
+    ["O homem é aquilo que ele faz de si mesmo.", "Jean-Paul Sartre"],
+    ["Não é o que acontece com você, mas como você reage que importa.", "Epicteto"]
+  ];
+
+  function layoutQuestoes(n, k) {
+    const cols = n > GRADE.maxPorColuna ? 2 : 1;
+    const porCol = Math.ceil(n / cols);
+    const larguraCol = 14 + (k - 1) * GRADE.passoX + 6;
+    const xs = cols === 1 ? [(PAG.w - larguraCol) / 2] : [32, 118];
+    const lista = [];
+    for (let q = 0; q < n; q++) {
+      const c = Math.floor(q / porCol), lin = q % porCol;
+      const x0 = xs[c], y = GRADE.y0 + lin * GRADE.passoY;
+      const bolinhas = [];
+      for (let j = 0; j < k; j++) bolinhas.push({ x: x0 + 14 + j * GRADE.passoX, y });
+      lista.push({ q: q + 1, x0, y, bolinhas });
+    }
+    return { cols, porCol, xs, larguraCol, lista };
+  }
+
+  // ---------------- QR: texto ----------------
+  function textoQR(info) {
+    return [PREFIXO_QR, info.gabId, info.turma, info.num, info.fila || "A"].join("|");
+  }
+  function lerTextoQR(txt) {
+    const p = String(txt || "").split("|");
+    if (p.length < 5 || p[0] !== PREFIXO_QR) return null;
+    const num = Number(p[3]);
+    if (!p[1] || !p[2] || !isFinite(num)) return null;
+    return { gabId: p[1], turma: p[2], num, fila: p[4] || "A" };
+  }
+
+  // ---------------- Cartão em PDF (uma página por aluno) ----------------
+  // opts: { qrcode (lib qrcode-generator), escola, prof, titulo, serie, bimestre,
+  //         avaliacao, n, k, gabId, turma, alunos:[{num,nome,fila}] }
+  function desenharCartoes(doc, opts) {
+    const L = layoutQuestoes(opts.n, opts.k);
+    const frase = FRASES[Math.floor(Math.random() * FRASES.length)];
+    opts.alunos.forEach((al, idx) => {
+      if (idx > 0) doc.addPage("a4", "portrait");
+      doc.setDrawColor(0); doc.setFillColor(0, 0, 0); doc.setTextColor(0);
+      CANTOS.forEach((c) => doc.rect(c.x - MARCA / 2, c.y - MARCA / 2, MARCA, MARCA, "F"));
+
+      // cabeçalho
+      doc.setFont("helvetica", "bold"); doc.setFontSize(12);
+      const escola = opts.escola || "INSTITUTO DE EDUCAÇÃO SILVA NASCIMENTO";
+      doc.text(escola, 25, 17);
+      doc.setLineWidth(0.3); doc.line(25, 18, 25 + doc.getTextWidth(escola), 18);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+      doc.text(opts.prof || "PROF: GLAUCIO RAFAEL.", 25, 23.5);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(11);
+      doc.text(doc.splitTextToSize("CARTÃO-RESPOSTA — " + (opts.titulo || ""), 132)[0], 25, 30);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+      let nomeTxt = "NOME: " + al.nome;
+      let fs = 10;
+      while (doc.getTextWidth(nomeTxt) > 132 && fs > 7) { fs -= 0.5; doc.setFontSize(fs); }
+      doc.text(nomeTxt, 25, 37);
+      doc.setFontSize(10);
+      doc.text(`Nº: ${al.num}     SÉRIE: ${opts.serie || ""}     ${opts.bimestre || ""}º BIMESTRE`, 25, 43);
+      doc.text("DATA: ____/____/______", 25, 49);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(13);
+      doc.text("FILA " + (al.fila || "A"), 110, 49);
+
+      // QR (vetorial)
+      const qr = opts.qrcode(0, "M");
+      qr.addData(textoQR({ gabId: opts.gabId, turma: opts.turma, num: al.num, fila: al.fila }));
+      qr.make();
+      const m = qr.getModuleCount(), mod = QR.lado / m;
+      for (let r = 0; r < m; r++) for (let c = 0; c < m; c++) {
+        if (qr.isDark(r, c)) doc.rect(QR.x + c * mod, QR.y + r * mod, mod + 0.02, mod + 0.02, "F");
+      }
+
+      // instruções curtas (exigência da leitura)
+      doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(60);
+      doc.text("Pinte TODA a bolinha da resposta, com caneta azul ou preta. Uma só por questão. Não rasure nem dobre o cartão.", PAG.w / 2, 62, { align: "center" });
+      doc.text("Não escreva perto dos quadrados pretos nem do código.", PAG.w / 2, 66.5, { align: "center" });
+
+      // grade
+      doc.setTextColor(0);
+      L.xs.forEach((x0, c) => {
+        const qtd = Math.min(L.porCol, opts.n - c * L.porCol);
+        if (qtd <= 0) return;
+        doc.setDrawColor(150); doc.setLineWidth(0.25);
+        doc.roundedRect(x0 - 2, GRADE.y0 - 12, L.larguraCol + 2, qtd * GRADE.passoY + 9, 2, 2, "S");
+        doc.setFont("helvetica", "bold"); doc.setFontSize(10);
+        for (let j = 0; j < opts.k; j++) doc.text(LETRAS[j], x0 + 14 + j * GRADE.passoX, GRADE.y0 - 6, { align: "center" });
+      });
+      L.lista.forEach((q) => {
+        doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(0);
+        doc.text(String(q.q).padStart(2, "0"), q.x0 + 3, q.y + 1.3);
+        doc.setDrawColor(90); doc.setLineWidth(0.35);
+        q.bolinhas.forEach((b) => doc.circle(b.x, b.y, GRADE.raio, "S"));
+      });
+
+      // rodapé
+      doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); doc.setTextColor(0);
+      doc.text("“" + frase[0] + "”", PAG.w / 2, 281, { align: "center" });
+      doc.setFont("helvetica", "italic"); doc.setFontSize(8);
+      doc.text("— " + frase[1], PAG.w / 2, 285, { align: "center" });
+    });
+    return doc;
+  }
+
+  // ---------------- Imagem: cinza + limiar adaptativo ----------------
+  function prepararImagem(img) {
+    const w = img.width, h = img.height, d = img.data;
+    const gray = new Uint8ClampedArray(w * h);
+    for (let i = 0, p = 0; i < w * h; i++, p += 4) gray[i] = (d[p] * 77 + d[p + 1] * 150 + d[p + 2] * 29) >> 8;
+    // imagem integral para média local
+    const integ = new Float64Array((w + 1) * (h + 1));
+    for (let y = 0; y < h; y++) {
+      let soma = 0;
+      for (let x = 0; x < w; x++) {
+        soma += gray[y * w + x];
+        integ[(y + 1) * (w + 1) + x + 1] = integ[y * (w + 1) + x + 1] + soma;
+      }
+    }
+    const r = Math.max(8, Math.round(Math.max(w, h) / 40));
+    const bin = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) {
+      const y1 = Math.max(0, y - r), y2 = Math.min(h, y + r + 1);
+      for (let x = 0; x < w; x++) {
+        const x1 = Math.max(0, x - r), x2 = Math.min(w, x + r + 1);
+        const area = (x2 - x1) * (y2 - y1);
+        const s = integ[y2 * (w + 1) + x2] - integ[y1 * (w + 1) + x2] - integ[y2 * (w + 1) + x1] + integ[y1 * (w + 1) + x1];
+        const g = gray[y * w + x];
+        bin[y * w + x] = (g * area < s * 0.82 && g < 170) ? 1 : 0;
+      }
+    }
+    return { w, h, gray, bin };
+  }
+
+  // ---------------- Componentes escuros (candidatos a quadrado) ----------------
+  function candidatosMarcadores(prep) {
+    const { w, h, bin } = prep;
+    const rot = new Int32Array(w * h);
+    const pilha = new Int32Array(w * h);
+    const cands = [];
+    const minA = (w * h) * 0.00004, maxA = (w * h) * 0.02;
+    let id = 0;
+    for (let i = 0; i < w * h; i++) {
+      if (!bin[i] || rot[i]) continue;
+      id++;
+      let topo = 0; pilha[topo++] = i; rot[i] = id;
+      let n = 0, sx = 0, sy = 0, xmin = w, xmax = 0, ymin = h, ymax = 0;
+      while (topo) {
+        const p = pilha[--topo];
+        const x = p % w, y = (p / w) | 0;
+        n++; sx += x; sy += y;
+        if (x < xmin) xmin = x; if (x > xmax) xmax = x;
+        if (y < ymin) ymin = y; if (y > ymax) ymax = y;
+        if (x > 0 && bin[p - 1] && !rot[p - 1]) { rot[p - 1] = id; pilha[topo++] = p - 1; }
+        if (x < w - 1 && bin[p + 1] && !rot[p + 1]) { rot[p + 1] = id; pilha[topo++] = p + 1; }
+        if (y > 0 && bin[p - w] && !rot[p - w]) { rot[p - w] = id; pilha[topo++] = p - w; }
+        if (y < h - 1 && bin[p + w] && !rot[p + w]) { rot[p + w] = id; pilha[topo++] = p + w; }
+      }
+      if (n < minA || n > maxA) continue;
+      const bw = xmax - xmin + 1, bh = ymax - ymin + 1;
+      const asp = bw / bh;
+      const preench = n / (bw * bh);
+      // quadrado cheio: muito preenchido (girado 45° o preenchimento cai para ~0,5)
+      if (asp < 0.5 || asp > 2 || preench < 0.45) continue;
+      cands.push({ x: sx / n, y: sy / n, area: n, preench, bw, bh });
+    }
+    return cands;
+  }
+
+  function ordenarHorario(pts) {
+    const mx = pts.reduce((a, p) => a + p.x, 0) / pts.length;
+    const my = pts.reduce((a, p) => a + p.y, 0) / pts.length;
+    return pts.slice().sort((a, b) => Math.atan2(a.y - my, a.x - mx) - Math.atan2(b.y - my, b.x - mx));
+  }
+
+  function areaPoligono(p) {
+    let s = 0;
+    for (let i = 0; i < p.length; i++) { const a = p[i], b = p[(i + 1) % p.length]; s += a.x * b.y - b.x * a.y; }
+    return Math.abs(s) / 2;
+  }
+  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+
+  // Escolhe os 4 quadrados que formam o retângulo da folha
+  function encontrarCantos(prep) {
+    let cands = candidatosMarcadores(prep);
+    // um quadrado de verdade é quase cheio — sem o filtro de preenchimento, letras e o QR atrapalham
+    cands = cands.filter((c) => c.preench > 0.6 || (c.preench > 0.45 && Math.abs(c.bw / c.bh - 1) < 0.25));
+    cands.sort((a, b) => b.area - a.area);
+    cands = cands.slice(0, 14);
+    if (cands.length < 4) throw new Error("Não encontrei os 4 quadrados pretos dos cantos. Fotografe o cartão inteiro, de cima e com boa luz.");
+    const razaoEsperada = (CANTOS[3].y - CANTOS[0].y) / (CANTOS[1].x - CANTOS[0].x); // ~1,48
+    let melhor = null;
+    const N = cands.length;
+    for (let a = 0; a < N; a++) for (let b = a + 1; b < N; b++) for (let c = b + 1; c < N; c++) for (let d = c + 1; d < N; d++) {
+      const g = [cands[a], cands[b], cands[c], cands[d]];
+      const areas = g.map((p) => p.area);
+      if (Math.min(...areas) / Math.max(...areas) < 0.3) continue;
+      const o = ordenarHorario(g);
+      const s = [dist(o[0], o[1]), dist(o[1], o[2]), dist(o[2], o[3]), dist(o[3], o[0])];
+      if (Math.min(s[0], s[2]) / Math.max(s[0], s[2]) < 0.6) continue;
+      if (Math.min(s[1], s[3]) / Math.max(s[1], s[3]) < 0.6) continue;
+      const lado1 = (s[0] + s[2]) / 2, lado2 = (s[1] + s[3]) / 2;
+      const razao = Math.max(lado1, lado2) / Math.min(lado1, lado2);
+      const errRazao = Math.abs(razao - razaoEsperada) / razaoEsperada;
+      if (errRazao > 0.3) continue;
+      // tamanho do quadrado coerente com o tamanho da folha
+      const ladoEsperado = Math.min(lado1, lado2) * MARCA / (CANTOS[1].x - CANTOS[0].x);
+      const ladoMedio = Math.sqrt(areas.reduce((x, y) => x + y, 0) / 4);
+      const errLado = ladoMedio / ladoEsperado;
+      if (errLado < 0.45 || errLado > 1.8) continue;
+      const pontos = areaPoligono(o) * (1 - errRazao) * (1 - Math.abs(1 - errLado) * 0.5);
+      if (!melhor || pontos > melhor.pontos) melhor = { pontos, cantos: o };
+    }
+    if (!melhor) throw new Error("Não consegui identificar a folha pelos quadrados dos cantos. Tente de novo, com o cartão inteiro na foto e sem sombra.");
+    return melhor.cantos;
+  }
+
+  // ---------------- Homografia ----------------
+  function resolver(A, b) { // eliminação de Gauss
+    const n = b.length;
+    for (let i = 0; i < n; i++) {
+      let mx = i;
+      for (let r = i + 1; r < n; r++) if (Math.abs(A[r][i]) > Math.abs(A[mx][i])) mx = r;
+      [A[i], A[mx]] = [A[mx], A[i]]; [b[i], b[mx]] = [b[mx], b[i]];
+      for (let r = i + 1; r < n; r++) {
+        const f = A[r][i] / A[i][i];
+        for (let c = i; c < n; c++) A[r][c] -= f * A[i][c];
+        b[r] -= f * b[i];
+      }
+    }
+    const x = new Array(n).fill(0);
+    for (let i = n - 1; i >= 0; i--) {
+      let s = b[i];
+      for (let c = i + 1; c < n; c++) s -= A[i][c] * x[c];
+      x[i] = s / A[i][i];
+    }
+    return x;
+  }
+  function homografia(origem, destino) {
+    const A = [], b = [];
+    for (let i = 0; i < 4; i++) {
+      const { x, y } = origem[i], { x: u, y: v } = destino[i];
+      A.push([x, y, 1, 0, 0, 0, -u * x, -u * y]); b.push(u);
+      A.push([0, 0, 0, x, y, 1, -v * x, -v * y]); b.push(v);
+    }
+    const h = resolver(A, b);
+    return [h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7], 1];
+  }
+  function aplicarH(H, x, y) {
+    const z = H[6] * x + H[7] * y + H[8];
+    return { x: (H[0] * x + H[1] * y + H[2]) / z, y: (H[3] * x + H[4] * y + H[5]) / z };
+  }
+  function hipoteses(cantosImg) { // as 4 rotações possíveis da folha na foto
+    const lista = [];
+    for (let r = 0; r < 4; r++) {
+      const dest = [0, 1, 2, 3].map((i) => cantosImg[(i + r) % 4]);
+      lista.push({ r, H: homografia(CANTOS, dest) });
+    }
+    return lista;
+  }
+
+  // Recorta a região do QR já "endireitada" (para o jsQR ler mesmo com a foto torta)
+  function recortarQR(img, H, px) {
+    px = px || 360;
+    const marg = 5, x0 = QR.x - marg, y0 = QR.y - marg, lado = QR.lado + 2 * marg;
+    const out = new Uint8ClampedArray(px * px * 4);
+    for (let j = 0; j < px; j++) for (let i = 0; i < px; i++) {
+      const p = aplicarH(H, x0 + (i + 0.5) * lado / px, y0 + (j + 0.5) * lado / px);
+      const xi = Math.round(p.x), yi = Math.round(p.y);
+      const o = (j * px + i) * 4;
+      if (xi < 0 || yi < 0 || xi >= img.width || yi >= img.height) { out[o] = out[o + 1] = out[o + 2] = 255; }
+      else { const s = (yi * img.width + xi) * 4; out[o] = img.data[s]; out[o + 1] = img.data[s + 1]; out[o + 2] = img.data[s + 2]; }
+      out[o + 3] = 255;
+    }
+    return { data: out, width: px, height: px };
+  }
+
+  // Acha a folha, a orientação certa e lê o QR. Retorna { H, cantos, qr }
+  function localizarFolha(img, prep, jsQR) {
+    const cantos = encontrarCantos(prep);
+    const hips = hipoteses(cantos);
+    // 1º: QR endireitado em cada rotação
+    if (jsQR) {
+      for (const hp of hips) {
+        const rec = recortarQR(img, hp.H);
+        const res = jsQR(rec.data, rec.width, rec.height, { inversionAttempts: "dontInvert" });
+        const info = res && lerTextoQR(res.data);
+        if (info) {
+          // o QR lido "em pé" confirma a rotação: os cantos do QR têm de estar na ordem certa
+          const lc = res.location;
+          if (lc && lc.topLeftCorner.x < lc.topRightCorner.x && lc.topLeftCorner.y < lc.bottomLeftCorner.y) {
+            return { H: hp.H, cantos, qr: info, rotacao: hp.r };
+          }
+        }
+      }
+      // 2º: QR na foto inteira (decide a rotação pela posição)
+      const res = jsQR(img.data, img.width, img.height, { inversionAttempts: "dontInvert" });
+      const info = res && lerTextoQR(res.data);
+      if (info) {
+        const lc = res.location;
+        const cq = { x: (lc.topLeftCorner.x + lc.bottomRightCorner.x) / 2, y: (lc.topLeftCorner.y + lc.bottomRightCorner.y) / 2 };
+        let melhor = null;
+        hips.forEach((hp) => {
+          const p = aplicarH(hp.H, QR.x + QR.lado / 2, QR.y + QR.lado / 2);
+          const dd = dist(p, cq);
+          if (!melhor || dd < melhor.dd) melhor = { dd, hp };
+        });
+        return { H: melhor.hp.H, cantos, qr: info, rotacao: melhor.hp.r };
+      }
+    }
+    // sem QR: assume a folha em pé (canto superior esquerdo = mais perto do topo-esquerda da foto)
+    let r0 = 0, menor = Infinity;
+    cantos.forEach((c, i) => { if (c.x + c.y < menor) { menor = c.x + c.y; r0 = i; } });
+    return { H: hips[r0].H, cantos, qr: null, rotacao: r0 };
+  }
+
+  // ---------------- Bolinhas ----------------
+  const LIMIAR_MARCADA = 0.28, LIMIAR_DUVIDA = 0.12;
+
+  function medirBolinha(prep, H, cx, cy, raio) {
+    let escuro = 0, total = 0;
+    const rr = raio * 0.62, passos = 9;
+    for (let a = 0; a < passos; a++) for (let b = 0; b < passos; b++) {
+      const dx = (a / (passos - 1) * 2 - 1) * rr, dy = (b / (passos - 1) * 2 - 1) * rr;
+      if (dx * dx + dy * dy > rr * rr) continue;
+      const p = aplicarH(H, cx + dx, cy + dy);
+      const xi = Math.round(p.x), yi = Math.round(p.y);
+      total++;
+      if (xi >= 0 && yi >= 0 && xi < prep.w && yi < prep.h && prep.bin[yi * prep.w + xi]) escuro++;
+    }
+    return total ? escuro / total : 0;
+  }
+
+  function lerBolinhas(prep, H, n, k) {
+    const L = layoutQuestoes(n, k);
+    return L.lista.map((q) => {
+      const fills = q.bolinhas.map((b) => Math.round(medirBolinha(prep, H, b.x, b.y, GRADE.raio) * 100) / 100);
+      const ordem = fills.map((f, i) => [f, i]).sort((a, b) => b[0] - a[0]);
+      const [f1, i1] = ordem[0], f2 = ordem[1] ? ordem[1][0] : 0;
+      let marcada = -1, status = "ok";
+      if (f1 < LIMIAR_DUVIDA) { status = "branco"; }
+      else if (f1 < LIMIAR_MARCADA) { marcada = i1; status = "duvida"; }
+      else if (f2 >= LIMIAR_MARCADA && f1 < f2 * 1.8) { status = "dupla"; }
+      else { marcada = i1; if (f2 >= LIMIAR_DUVIDA) status = "duvida"; }
+      return { q: q.q, fills, marcada, status };
+    });
+  }
+
+  // ---------------- Correção ----------------
+  // gabaritoFila: string "CABD..." (letra correta de cada questão; "X" = anulada, vale para todos)
+  // respostas: array de índices (-1 = branco/inválida)
+  function corrigir(respostas, gabaritoFila, valores) {
+    let acertos = 0, erros = 0, brancos = 0, nota = 0;
+    const detalhe = respostas.map((r, i) => {
+      const certa = String(gabaritoFila[i] || "").toUpperCase();
+      const v = Number(valores[i]) || 0;
+      if (certa === "X") { acertos++; nota += v; return "anulada"; } // questão anulada: ponto para todos
+      if (r < 0) { brancos++; return "branco"; }
+      if (LETRAS[r] === certa) { acertos++; nota += v; return "certo"; }
+      erros++; return "errado";
+    });
+    return { acertos, erros, brancos, nota: Math.round(nota * 100) / 100, detalhe };
+  }
+
+  const API = {
+    PAG, CANTOS, QR, GRADE, LETRAS, FRASES, LIMIAR_MARCADA, LIMIAR_DUVIDA,
+    layoutQuestoes, textoQR, lerTextoQR, desenharCartoes,
+    prepararImagem, encontrarCantos, homografia, aplicarH, localizarFolha, recortarQR,
+    lerBolinhas, corrigir
+  };
+  if (typeof module !== "undefined" && module.exports) module.exports = API;
+  else raiz.CorrecaoCore = API;
+})(typeof window !== "undefined" ? window : globalThis);

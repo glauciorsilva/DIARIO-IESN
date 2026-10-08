@@ -230,6 +230,7 @@
       <div class="sync-indicator"><span class="sync-dot" id="syncDot"></span><span id="syncLabel">—</span></div>
       <button id="btnInstalarApp" onclick="instalarApp()" style="display:none;">📲 Instalar App</button>
       <button id="btnConfigFirebase">⚙ Firebase</button>
+      <button id="btnCorrigirFoto">📷 Corrigir prova</button>
       <button id="btnImportarNotas">📥 Importar notas</button>
       <button id="btnExportPdf">📄 Exportar PDF</button>
       <button id="btnSair">Sair</button>
@@ -241,6 +242,7 @@
     <button data-aba="extra">Ponto Extra</button>
     <button data-aba="notas">Notas</button>
     <button data-aba="mapa">Mapa de Notas</button>
+    <button data-aba="correcao">Correção</button>
   </nav>
 
   <main id="mainContent"></main>
@@ -263,6 +265,10 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="/vendor/jsQR.js"></script>
+<script src="/vendor/qrcode.js"></script>
+<script src="/correcao-core.js"></script>
+<script src="/correcao.js"></script>
 
 <script>
 const TURMAS_INICIAIS = {
@@ -785,6 +791,9 @@ function ligarEventosGlobais() {
   const btnPdf = document.getElementById("btnExportPdf");
   if (btnPdf) btnPdf.addEventListener("click", exportarPdfMapaDeNotas);
 
+  const btnFoto = document.getElementById("btnCorrigirFoto");
+  if (btnFoto) btnFoto.addEventListener("click", abrirCamera);
+
   const btnImp = document.getElementById("btnImportarNotas");
   if (btnImp) btnImp.addEventListener("click", abrirModalImportacao);
 
@@ -803,6 +812,7 @@ function renderAll() {
   else if (ABA_ATUAL === "extra") renderPontoExtra();
   else if (ABA_ATUAL === "notas") renderNotas();
   else if (ABA_ATUAL === "mapa") renderMapaDeNotas();
+  else if (ABA_ATUAL === "correcao") renderCorrecao();
 }
 
 function todasDatasDaTurma(t) {
@@ -1061,7 +1071,10 @@ function renderNotas() {
 
   main.innerHTML = `
     <div class="card">
-      <h3>Notas — ${t.nome}</h3>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+        <h3 style="margin:0">Notas — ${t.nome}</h3>
+        <button class="btn btn-primary" id="btnNotasFoto">📷 Corrigir prova por foto</button>
+      </div>
       <p class="hint">Média do bimestre = soma dos pontos (teste + trabalho + prova + ponto extra), valendo no máximo 10. Média final = soma das 4 médias ÷ 4. A recuperação do meio do ano altera o 2º bimestre e a do fim do ano, o 4º (vale a maior nota). Use vírgula ou ponto para casas decimais (ex: 0,5).</p>
       <div class="table-wrap">
         <table class="tabela-notas">
@@ -1099,6 +1112,8 @@ function renderNotas() {
       </div>
     </div>
   `;
+
+  document.getElementById("btnNotasFoto").addEventListener("click", abrirCamera);
 
   main.querySelectorAll("[data-nota]").forEach((inp) => {
     inp.addEventListener("input", () => {

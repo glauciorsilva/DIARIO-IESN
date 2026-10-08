@@ -1,11 +1,15 @@
-const CACHE_NAME = "diario-isn-v3";
+const CACHE_NAME = "diario-isn-v4";
 const APP_SHELL = [
   "/",
   "/index.html",
   "/manifest.json",
   "/icon-192.png",
   "/icon-512.png",
-  "/icon-512-maskable.png"
+  "/icon-512-maskable.png",
+  "/correcao-core.js",
+  "/correcao.js",
+  "/vendor/jsQR.js",
+  "/vendor/qrcode.js"
 ];
 
 self.addEventListener("install", (event) => {

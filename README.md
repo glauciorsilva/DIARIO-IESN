@@ -42,6 +42,46 @@ prévia e confirme. Nada é gravado sem confirmação, e a última importação 
 - `numero`: número da chamada (localiza o aluno; o nome serve de conferência)
 - `nota`: 0 a 10; `null` pula o aluno · vários lotes: envie uma lista `[ {...}, {...} ]`
 
+## Correção por foto (cartão-resposta)
+
+Aba **Correção** (e botões **📷 Corrigir prova** no topo e na aba Notas).
+
+1. **+ Novo gabarito**: título, bimestre, onde lançar (teste, trabalho, prova ou recuperação),
+   nº de questões (até 50), alternativas (A–D ou A–E), fila única ou filas A e B, e o valor de
+   cada questão. Também aceita colar o gabarito em JSON:
+   `{ "titulo": "...", "bimestre": 3, "avaliacao": "prova", "alternativas": 5, "questoes": [ { "A": "D", "B": "A", "valor": 0.4 } ] }`.
+   ∅ anula a questão (ponto para todos).
+2. **🖨 Cartões**: gera o PDF com um cartão-resposta por aluno (nome e nº do diário, fila e um
+   QR code). Imprimir em A4, tamanho real.
+3. **📷 Corrigir por foto**: fotografe o cartão inteiro (os 4 quadrados pretos aparecendo). O app
+   acha a folha, lê o QR (gabarito, aluno e fila), lê as bolinhas e mostra a conferência: acertos,
+   erros, em branco, marcações duplas e a nota. Dá para ajustar qualquer questão à mão.
+   **Salvar e lançar nota** grava a nota na aba Notas e envia ao Firebase a foto do cartão
+   (já endireitada e comprimida, ~80 KB) com as marcações, acertos, erros e nota.
+4. **📊 Resultados**: quem já foi corrigido, acertos/erros/nota e a foto de cada cartão.
+   Editar o gabarito (ex.: anular uma questão) oferece recalcular as notas já lançadas.
+
+Sem internet, a nota vai para o diário e a foto fica guardada no aparelho até **Enviar agora**.
+
+### Onde fica no Firebase
+
+Mesma coleção do diário (`diario_silva_nascimento`), em documentos separados:
+- `gab_<id>` — gabarito (`tipo: "gabarito"`)
+- `cor_<gabarito>_<turma>_<nº>` — correção de um aluno (`tipo: "correcao"`): `foto`, `marcadas`,
+  `acertos`, `erros`, `brancos`, `nota`, `notaAnterior`, `corrigidoEm`...
+
+As regras do Firestore precisam liberar **a coleção inteira** para o login do professor:
+
+```
+match /diario_silva_nascimento/{doc} {
+  allow read, write: if request.auth != null
+    && request.auth.token.email == 'rafael.glaucio2@gmail.com';
+}
+```
+
+Arquivos: `correcao-core.js` (cartão em PDF + leitura da foto), `correcao.js` (telas),
+`vendor/jsQR.js` (Apache-2.0) e `vendor/qrcode.js` (MIT).
+
 ## Turmas incluídas
 
 - 6º Ano (26 alunos)
