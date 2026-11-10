@@ -724,6 +724,30 @@ function iniciarApp() {
     console.warn("Firebase init falhou", e);
     setSyncStatus("offline");
   }
+  importarDoLink();
+}
+
+/* Importação pelo link: outro app (ex.: correção por foto) abre
+   https://diariosn.vercel.app/#importar=<JSON em base64url> e o diário já abre a prévia.
+   Nada é gravado antes de você conferir e tocar em "Confirmar importação". */
+function importarDoLink() {
+  const m = /^#importar=([A-Za-z0-9_\-]+=*)$/.exec(location.hash || "");
+  if (!m) return;
+  history.replaceState(null, "", location.pathname + location.search);
+  let texto;
+  try {
+    const b64 = m[1].replace(/-/g, "+").replace(/_/g, "/");
+    const bin = atob(b64 + "===".slice((b64.length + 3) % 4));
+    texto = new TextDecoder("utf-8").decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+    JSON.parse(texto);
+  } catch (e) {
+    alert("O link de importação veio incompleto ou corrompido. Gere o link de novo no app de correção.");
+    return;
+  }
+  abrirModalImportacao();
+  document.getElementById("impTexto").value = texto;
+  document.getElementById("impColar").open = true;
+  gerarPreviaImportacao();
 }
 
 function renderTurmaSelect() {
@@ -1302,11 +1326,12 @@ function resolverAvaliacao(valor) {
   if (v.startsWith("TRAB")) return "trabalho";
   if (v.startsWith("PROV")) return "prova";
   if (v.startsWith("REC")) return "recuperacao";
+  if (v.startsWith("EXTRA") || v.startsWith("PONTO") || v.startsWith("PONTOEXTRA")) return "extra";
   return null;
 }
 
 function rotuloAvaliacao(av) {
-  return { teste: "Teste", trabalho: "Trabalho", prova: "Prova", recuperacao: "Recuperação" }[av] || av;
+  return { teste: "Teste", trabalho: "Trabalho", prova: "Prova", recuperacao: "Recuperação", extra: "Ponto extra" }[av] || av;
 }
 
 // Compara o nome do JSON com o nome do diário: "igual", "parecido" ou "diferente"
@@ -1327,7 +1352,16 @@ function extrairLotes(dados) {
   return [];
 }
 
-function valorAtualNota(aluno, bim, av) {
+function itemPontoExtra(aluno, bim, desc) {
+  const lista = (aluno.pontosExtra && aluno.pontosExtra[bim]) || [];
+  return lista.find((p) => normalizarTexto(p.desc || "") === normalizarTexto(desc || "")) || null;
+}
+
+function valorAtualNota(aluno, bim, av, desc) {
+  if (av === "extra") {
+    const it = itemPontoExtra(aluno, bim, desc);
+    return it ? Number(it.valor) || 0 : null;
+  }
   if (av === "recuperacao") {
     const r = aluno.recuperacao && aluno.recuperacao[bim];
     return r === null || r === undefined || r === "" ? null : Number(r);
@@ -1359,7 +1393,8 @@ function montarPreviaImportacao(dados) {
     const turma = STATE.turmas[turmaId];
     const usados = new Set();
     notas.forEach((n) => {
-      const linha = { rotuloLote, turmaId, turmaNome: turma.nome, bim, av, nomeJson: n.nome || "", numero: n.numero };
+      const linha = { rotuloLote, turmaId, turmaNome: turma.nome, bim, av, nomeJson: n.nome || "", numero: n.numero,
+                      desc: av === "extra" ? String(lote.descricao || lote.atividade || "Ponto extra importado") : undefined };
       let aluno = null;
       if (n.numero !== undefined && n.numero !== null && n.numero !== "") {
         aluno = turma.alunos.find((a) => a.num === Number(n.numero));
@@ -1373,7 +1408,7 @@ function montarPreviaImportacao(dados) {
       }
       linha.numero = aluno.num;
       linha.nomeDiario = aluno.nome;
-      linha.atual = valorAtualNota(aluno, bim, av);
+      linha.atual = valorAtualNota(aluno, bim, av, linha.desc);
       if (usados.has(aluno.num)) {
         Object.assign(linha, { status: "erro", erro: "Aluno repetido no mesmo lote", marcado: false });
         linhas.push(linha); return;
@@ -1390,7 +1425,7 @@ function montarPreviaImportacao(dados) {
         Object.assign(linha, { status: "vazio", erro: "Nota inválida (" + n.nota + ") — corrija ao lado", marcado: false });
         linhas.push(linha); return;
       }
-      linha.nota = Math.round(nota * 100) / 100;
+      linha.nota = Math.round(nota * 1000) / 1000;
       aplicarStatusNome(linha);
       linhas.push(linha);
     });
@@ -1424,7 +1459,7 @@ function abrirModalImportacao() {
           </select></label>
         <label class="hint" style="margin:0;">Avaliação
           <select id="impAv" style="padding:6px;border-radius:6px;border:1px solid var(--line);">
-            <option value="teste">Teste</option><option value="trabalho">Trabalho</option><option value="prova" selected>Prova</option><option value="recuperacao">Recuperação</option>
+            <option value="teste">Teste</option><option value="trabalho">Trabalho</option><option value="prova" selected>Prova</option><option value="recuperacao">Recuperação</option><option value="extra">Ponto extra</option>
           </select></label>
         <button class="btn btn-primary" id="impDigitar">Digitar notas da turma</button>
       </div>
@@ -1612,7 +1647,14 @@ function aplicarLinhasNoEstado(estado, linhas) {
     const aluno = turma.alunos.find((a) => normalizarTexto(a.nome) === normalizarTexto(l.nomeDiario)) ||
                   turma.alunos.find((a) => a.num === l.numero);
     if (!aluno) return;
-    if (l.av === "recuperacao") {
+    if (l.av === "extra") {
+      // ponto extra: atualiza o item de mesma descrição (reimportar não duplica) ou cria um novo
+      aluno.pontosExtra = aluno.pontosExtra || { b1: [], b2: [], b3: [], b4: [] };
+      aluno.pontosExtra[l.bim] = aluno.pontosExtra[l.bim] || [];
+      const it = itemPontoExtra(aluno, l.bim, l.desc);
+      if (it) { it.valor = l.nota; it.tipo = "add"; }
+      else aluno.pontosExtra[l.bim].push({ tipo: "add", desc: l.desc, valor: l.nota });
+    } else if (l.av === "recuperacao") {
       aluno.recuperacao = aluno.recuperacao || { b2: null, b4: null };
       aluno.recuperacao[l.bim] = l.nota;
     } else {
