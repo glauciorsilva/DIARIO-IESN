@@ -7,6 +7,9 @@ Sistema de diário de classe digital para o Prof. Glaucio Rafael, com:
 - **Notas**: média do bimestre = soma de teste + trabalho + prova + ponto extra (máx. 10); média final = soma das 4 médias ÷ 4 (aprovado com 7). Recuperação do meio do ano altera o 2º bimestre e a do fim do ano, o 4º — vale a maior nota
 - **Mapa de Notas**: resumo final por turma, com exportação em PDF
 - **Observações**: anotações livres por aluno
+- **CRM do Aluno**: cartão de cada aluno com mini gráfico da evolução das médias, ficha individual
+  (notas por bimestre × média da turma, presença, pontos extras, provas corrigidas, perfil do teste
+  de personalidade) e anotações datadas por categoria
 - Sincronização automática com Firebase Firestore (via API REST)
 
 ## Como usar
@@ -41,6 +44,22 @@ prévia e confirme. Nada é gravado sem confirmação, e a última importação 
 - `bimestre`: 1 a 4 · `avaliacao`: `teste`, `trabalho`, `prova` ou `recuperacao` (só 2º e 4º)
 - `numero`: número da chamada (localiza o aluno; o nome serve de conferência)
 - `nota`: 0 a 10; `null` pula o aluno · vários lotes: envie uma lista `[ {...}, {...} ]`
+
+## CRM do Aluno
+
+Aba **CRM do Aluno** (`crm.js`). A lista mostra um cartão por aluno com a última média, a tendência
+(↑ ↓ →), um mini gráfico do 1º ao 4º bimestre (linha tracejada = média da turma) e avisos de atenção:
+média abaixo de 7, queda de 1 ponto ou mais entre os dois últimos bimestres, presença abaixo de 75%.
+Tocar no aluno abre a ficha: gráfico por bimestre (teste, trabalho, prova, ponto extra e recuperação),
+presença, pontos extras, provas corrigidas por foto, perfil do teste de personalidade e anotações
+(Pedagógico, Comportamento, Família, Elogio, Ocorrência, Outro). **🖨 Ficha** imprime ou salva em PDF.
+
+Dados no mesmo estado do diário (Firebase): `aluno.crm.anotacoes` e `aluno.personalidade`.
+
+**Teste de personalidade (Big Five):** importe pelo **📥 Importar notas** o JSON exportado pelo leitor
+do teste (`{ "origem": "teste_personalidade_big_five", "turma": "6ANO", "registros": [...] }`, ou uma
+lista desses lotes). O aluno é localizado pelo nome (e pelo nº, se o nome não bater). O resultado não
+fica neste repositório, que é público: só no Firebase, atrás do login.
 
 ## Correção por foto (cartão-resposta)
 

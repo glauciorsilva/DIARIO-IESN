@@ -1,4 +1,4 @@
-const CACHE_NAME = "diario-isn-v8";
+const CACHE_NAME = "diario-isn-v9";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -8,6 +8,7 @@ const APP_SHELL = [
   "/icon-512-maskable.png",
   "/correcao-core.js",
   "/correcao.js",
+  "/crm.js",
   "/gabaritos-iniciais.js",
   "/vendor/jsQR.js",
   "/vendor/qrcode.js"

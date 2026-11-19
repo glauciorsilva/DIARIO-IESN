@@ -243,6 +243,7 @@
     <button data-aba="notas">Notas</button>
     <button data-aba="mapa">Mapa de Notas</button>
     <button data-aba="correcao">Correção</button>
+    <button data-aba="crm">CRM do Aluno</button>
   </nav>
 
   <main id="mainContent"></main>
@@ -270,6 +271,7 @@
 <script src="/correcao-core.js"></script>
 <script src="/gabaritos-iniciais.js"></script>
 <script src="/correcao.js"></script>
+<script src="/crm.js"></script>
 
 <script>
 const TURMAS_INICIAIS = {
@@ -761,6 +763,7 @@ function turmaAtual() { return STATE.turmas[TURMA_ATUAL]; }
 function ligarEventosGlobais() {
   document.getElementById("turmaSelect").addEventListener("change", (e) => {
     TURMA_ATUAL = e.target.value;
+    CRM_SEL = null;
     renderAll();
   });
 
@@ -768,6 +771,7 @@ function ligarEventosGlobais() {
     const btn = e.target.closest("[data-aba]");
     if (!btn) return;
     ABA_ATUAL = btn.dataset.aba;
+    if (ABA_ATUAL === "crm") CRM_SEL = null;
     document.querySelectorAll("#tabsNav [data-aba]").forEach((b) => b.classList.toggle("active", b === btn));
     renderAll();
   });
@@ -838,6 +842,7 @@ function renderAll() {
   else if (ABA_ATUAL === "notas") renderNotas();
   else if (ABA_ATUAL === "mapa") renderMapaDeNotas();
   else if (ABA_ATUAL === "correcao") renderCorrecao();
+  else if (ABA_ATUAL === "crm") renderCRM();
 }
 
 function todasDatasDaTurma(t) {
@@ -1451,7 +1456,7 @@ function abrirModalImportacao() {
   overlay.innerHTML = `
     <div class="modal wide">
       <h3>Importar notas (JSON)</h3>
-      <p class="hint"><b>Jeito mais rápido:</b> escolha o bimestre e a avaliação e toque em <b>Digitar notas da turma</b> — aparece a lista de alunos para você preencher as notas. Ou escolha um arquivo <b>.json</b> já com as notas. Nada é gravado antes de você conferir e confirmar.</p>
+      <p class="hint"><b>Jeito mais rápido:</b> escolha o bimestre e a avaliação e toque em <b>Digitar notas da turma</b> — aparece a lista de alunos para você preencher as notas. Ou escolha um arquivo <b>.json</b> já com as notas (também aceita o arquivo do teste de personalidade, que vai para a aba CRM do Aluno). Nada é gravado antes de você conferir e confirmar.</p>
       <div class="row-add" style="margin-top:10px;align-items:center;">
         <label class="hint" style="margin:0;">Bimestre
           <select id="impBim" style="padding:6px;border-radius:6px;border:1px solid var(--line);">
@@ -1522,6 +1527,9 @@ function gerarPreviaImportacao() {
   let dados;
   try { dados = JSON.parse(txt); }
   catch (e) { area.innerHTML = `<p class="hint" style="color:var(--red)">JSON inválido: ${escapeHtml(e.message)}</p>`; return; }
+  // arquivo do teste de personalidade (Big Five) → vai para a ficha do aluno no CRM (crm.js)
+  if (ehImportPersonalidade(dados)) { previaPersonalidade(dados); return; }
+  PERS_PREVIA = null;
   try { IMPORT_PREVIA = montarPreviaImportacao(dados); }
   catch (e) { area.innerHTML = `<p class="hint" style="color:var(--red)">${escapeHtml(e.message)}</p>`; return; }
   renderPreviaImportacao();
